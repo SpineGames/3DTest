@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C# Express 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3DTest", "3DTest\3DTest\3DTest.csproj", "{F1646702-A400-4C57-B77E-871B487BC895}"
+	ProjectSection(ProjectDependencies) = postProject
+		{49F1C06A-D7F9-4E1F-8227-0C30EC9E0546} = {49F1C06A-D7F9-4E1F-8227-0C30EC9E0546}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3DTestContent", "3DTest\3DTestContent\3DTestContent.contentproj", "{9A87E9A1-9D46-489C-B25E-E09FF3068768}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomImporters", "CustomImporters\CustomImporters.csproj", "{49F1C06A-D7F9-4E1F-8227-0C30EC9E0546}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F1646702-A400-4C57-B77E-871B487BC895}.Debug|x86.ActiveCfg = Debug|x86
+		{F1646702-A400-4C57-B77E-871B487BC895}.Debug|x86.Build.0 = Debug|x86
+		{F1646702-A400-4C57-B77E-871B487BC895}.Release|x86.ActiveCfg = Release|x86
+		{F1646702-A400-4C57-B77E-871B487BC895}.Release|x86.Build.0 = Release|x86
+		{9A87E9A1-9D46-489C-B25E-E09FF3068768}.Debug|x86.ActiveCfg = Debug|x86
+		{9A87E9A1-9D46-489C-B25E-E09FF3068768}.Release|x86.ActiveCfg = Release|x86
+		{49F1C06A-D7F9-4E1F-8227-0C30EC9E0546}.Debug|x86.ActiveCfg = Debug|x86
+		{49F1C06A-D7F9-4E1F-8227-0C30EC9E0546}.Debug|x86.Build.0 = Debug|x86
+		{49F1C06A-D7F9-4E1F-8227-0C30EC9E0546}.Release|x86.ActiveCfg = Debug|x86
+		{49F1C06A-D7F9-4E1F-8227-0C30EC9E0546}.Release|x86.Build.0 = Debug|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

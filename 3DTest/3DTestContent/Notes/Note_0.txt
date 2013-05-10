@@ -1,0 +1,5 @@
+These Notes will tell players important bits of 
+information. The Notes are edited in a text 
+editor, then read in from a .txt file format. 
+This allows many notes to be made quickly and
+easily.
