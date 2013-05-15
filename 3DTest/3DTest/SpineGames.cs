@@ -625,7 +625,7 @@ namespace Spine_Library
             /// <param name="effect">The basicEffect to use</param>
             public static void drawModel(Instance3D instance, BasicEffect effect)
             {
-                getModel(instance.model).render(effect, instance.position, instance.direction, instance.getMatrix(), 1F);
+                getModel(instance.model).render(effect, instance.position, instance.getMatrix(), 1F);
             }
         }
 
@@ -661,6 +661,38 @@ namespace Spine_Library
                 if (texs.ContainsKey(name)) //makes sure the texture exists
                     return texs[name];
                 return null;
+            }
+
+            /// <summary>
+            /// Gets a texture from the given name
+            /// </summary>
+            /// <param ID="ID">The id of the texture to get</param>
+            /// <returns>The texture, or null if the texture does not exist</returns>
+            public static Texture2D getTex(int ID)
+            {
+                if (texs.Count > ID) //makes sure the texture exists
+                    return texs.Values.ElementAt(ID);
+                return null;
+            }
+
+            public static int getID(string name)
+            {
+                if (texs.ContainsKey(name)) //makes sure the texture exists
+                    return texs.Keys.ToList().IndexOf(name);
+                return -1;
+            }
+
+            public static string getName(int ID)
+            {
+                return texs.Keys.ElementAt(ID);
+            }
+
+            public static void loadToGlobalModel()
+            {
+                foreach (string key in texs.Keys)
+                {
+                    GlobalStaticModel.addTexture(texs[key], key);
+                }
             }
         }
 
@@ -709,6 +741,7 @@ namespace Spine_Library
             Keys key;
             List<Keys> keys;
             List<keyState> keyStates = new List<keyState>();
+            public EventHandler isPressed;
             bool isKeyDown = false, wasPreviouslyDown = false;
             public bool wasPressed = false, wasReleased = false;
             byte type = 0;
@@ -717,9 +750,12 @@ namespace Spine_Library
             /// Create a new keywatcher
             /// </summary>
             /// <param name="key">The key to watch</param>
-            public KeyWatcher(Keys key)
+            /// <param name="pressedEvent">The event to raise when the button is pressed</param>
+            public KeyWatcher(Keys key, EventHandler pressedEvent = null)
             {
                 this.key = key;
+                if (pressedEvent != null)
+                    this.isPressed = pressedEvent;
             }
 
             /// <summary>
@@ -728,7 +764,8 @@ namespace Spine_Library
             /// </summary>
             /// <param name="key">The keys to watch</param>
             /// <param name="all">True if all keys need to be pressed at once</param>
-            public KeyWatcher(List<Keys> keys, bool all)
+            /// <param name="pressedEvent">The event to raise when the button is pressed</param>
+            public KeyWatcher(List<Keys> keys, bool all = false, EventHandler pressedEvent = null)
             {
                 this.keys = keys;
                 if (all)
@@ -739,6 +776,8 @@ namespace Spine_Library
                 {
                     keyStates.Add(new keyState(k));
                 }
+
+                this.isPressed = pressedEvent;
             }
 
             /// <summary>
@@ -839,6 +878,12 @@ namespace Spine_Library
                         }
                         break;
                     #endregion
+                }
+
+                if (wasPressed)
+                {
+                    if (isPressed != null)
+                        isPressed.Invoke(this, new EventArgs());
                 }
             }
 
@@ -2749,53 +2794,75 @@ namespace Spine_Library
 
     namespace _3DFuncs
     {
+        /// <summary>
+        /// An instance of a vertexModel
+        /// </summary>
         public class Instance3D
         {
-            public Vector2 direction;
+            /// <summary>
+            /// The position of this instance
+            /// </summary>
             public Vector3 position;
+            /// <summary>
+            /// The orgin of this model
+            /// </summary>
             public Vector3 orgin;
-            public float relativeYaw, relativePitch, relativeRoll;
+            /// <summary>
+            /// The relative rotation angles, when the direction angles
+            /// are 0
+            /// </summary>
+            public float relativeYaw, relativePitch, relativeRoll, yaw, pitch, roll;
+            /// <summary>
+            /// The world matrix
+            /// </summary>
             Matrix world;
+            /// <summary>
+            /// The refrence to the model
+            /// </summary>
+            public int model, texID = 0;
 
+            /// <summary>
+            /// Sets this instance's world matrix to the specified matrix
+            /// </summary>
+            /// <param name="world">The matrix to set as the world</param>
             public void setMatrix(Matrix world) { this.world = world; }
 
+            /// <summary>
+            /// Get's this instance's matrix
+            /// </summary>
+            /// <returns>The world matrix to set the instance's matrix to</returns>
             public Matrix getMatrix() { return world; }
 
+            /// <summary>
+            /// Rebuilds the world matrix for this instance
+            /// </summary>
+            /// <param name="orgin">The new orgin to use</param>
+            /// <param name="scale">The scale to use</param>
             public void rebuildMatrix(Vector3 orgin, float scale = 1F)
             {
                 world = Matrix.CreateTranslation(orgin) * Matrix.CreateScale(scale) *
-                    Matrix.CreateRotationX(direction.X + relativeRoll) * Matrix.CreateRotationY(relativePitch) *
-                    Matrix.CreateRotationZ(direction.Y + relativeYaw) * Matrix.CreateTranslation(position);
+                    Matrix.CreateRotationX(relativeRoll + roll) * Matrix.CreateRotationY(relativePitch + pitch) *
+                    Matrix.CreateRotationZ(relativeYaw + yaw) * Matrix.CreateTranslation(position);
                 this.orgin = orgin;
             }
-
-            public int model;
         }
-
-        public class PushableInstance3D
+        
+        public class VertexModel
         {
-            public Vector2 direction;
-            public Vector3 position, pin;
-            public BoundingBox boundingBox;
-
-            public string model;
-        }
-
-        public class VertexModel : Instance3D
-        {
-            public Vector3 orgin;
-            public Texture2D tex;
+            public Vector3 orgin, position;
             public List<VertexPositionColorTexture> verts = new List<VertexPositionColorTexture>();
             public List<VertexPositionColor> colorVerts = new List<VertexPositionColor>();
             public List<VertexPositionColor> lineList = new List<VertexPositionColor>();
             public BoundingBox boundingBox;
             public BoundingSphere boundingSphere;
             public float yaw, pitch, roll, relativeYaw, relativePitch, relativeRoll;
+            public int texID = 0;
 
             public void render(BasicEffect basicEffect, Vector3 position, Vector3 rotation, float scale = 1F)
             {
                 Matrix world = basicEffect.World;
-                basicEffect.Texture = tex;
+                basicEffect.Texture = TextureManager.getTex(texID);
+
                 if (verts.Count >= 3)
                 {
                     basicEffect.World = Matrix.CreateTranslation(orgin) * Matrix.CreateScale(scale) *
@@ -2831,22 +2898,20 @@ namespace Spine_Library
             public void render(BasicEffect basicEffect, Vector3 position, Vector2 rotation, float scale = 1F)
             {
                 Matrix world = basicEffect.World;
-                basicEffect.Texture = tex;
+                basicEffect.Texture = TextureManager.getTex(texID);
+
+                    basicEffect.World = Matrix.CreateTranslation(orgin) * Matrix.CreateScale(scale) *
+                        Matrix.CreateRotationX(rotation.X + relativeRoll + roll) * Matrix.CreateRotationY(relativePitch + pitch) *
+                        Matrix.CreateRotationZ(rotation.Y + relativeYaw + yaw) * Matrix.CreateTranslation(position);
+
                 if (verts.Count >= 3)
                 {
-                    basicEffect.World = Matrix.CreateTranslation(orgin) * Matrix.CreateScale(scale) *
-                        Matrix.CreateRotationX(rotation.X + relativeRoll) * Matrix.CreateRotationY(relativePitch) *
-                        Matrix.CreateRotationZ(rotation.Y + relativeYaw) * Matrix.CreateTranslation(position);
 
                     basicEffect.CurrentTechnique.Passes[0].Apply();
                     basicEffect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, verts.ToArray(), 0, verts.Count / 3);
                 }
                 if (colorVerts.Count >= 3)
                 {
-                    basicEffect.World = Matrix.CreateTranslation(orgin) * Matrix.CreateScale(scale) *
-                        Matrix.CreateRotationX(rotation.X + relativeRoll) * Matrix.CreateRotationY(relativePitch) *
-                        Matrix.CreateRotationZ(rotation.Y + relativeYaw) * Matrix.CreateTranslation(position);
-
                     basicEffect.TextureEnabled = false;
                     basicEffect.CurrentTechnique.Passes[0].Apply();
                     basicEffect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, colorVerts.ToArray(), 0, colorVerts.Count / 3);
@@ -2864,10 +2929,10 @@ namespace Spine_Library
                 basicEffect.World = world;
             }
 
-            public void render(BasicEffect basicEffect, Vector3 position, Vector2 rotation, Matrix world, float scale = 1F)
+            public void render(BasicEffect basicEffect, Vector3 position, Matrix world, float scale = 1F)
             {
                 Matrix tempWorld = basicEffect.World;
-                basicEffect.Texture = tex;
+                basicEffect.Texture = TextureManager.getTex(texID);
 
                 basicEffect.World = world;
 
@@ -2894,10 +2959,108 @@ namespace Spine_Library
 
                 basicEffect.World = tempWorld;
             }
-
+            
             public void setYaw(float yaw) { this.yaw = yaw; }
             public void setPitch(float pitch) { this.pitch = pitch; }
             public void setRoll(float roll) { this.roll = roll; }
+        }
+
+        public class GlobalStaticModel
+        {
+            static Dictionary<string, VertexPositionColorTexture[]> verts = new Dictionary<string, VertexPositionColorTexture[]>();
+            static Dictionary<string, List<VertexPositionColorTexture>> temp = new Dictionary<string, List<VertexPositionColorTexture>>();
+            static Dictionary<string, Texture2D> texs = new Dictionary<string, Texture2D>();
+
+            public static void addTexture(Texture2D texture, string name = null)
+            {
+                if (name != null)
+                {
+                    texs.Add(name, texture);
+                    verts.Add(name, new VertexPositionColorTexture[] { });
+                    temp.Add(name, new List<VertexPositionColorTexture>());
+                }
+                else
+                {
+                    verts.Add(getFirstOpenName(), new VertexPositionColorTexture[] { });
+                    temp.Add(getFirstOpenName(), new List<VertexPositionColorTexture>());
+                    texs.Add(getFirstOpenName(), texture);
+                }
+            }
+
+            public static void addModel(string texName, Instance3D instance)
+            {
+                if (texs.Keys.Contains(texName))
+                {
+                    VertexModel m = ModelManager.getModel(instance.model);
+                    for (int i = 0; i < m.verts.Count; i++)
+                    {
+                        VertexPositionColorTexture v = m.verts[i];
+                        v.Position = Vector3.Transform(v.Position, instance.getMatrix());
+                        temp[texName].Add(v);
+                    }
+                    verts[texName] = temp[texName].ToArray();
+                }                    
+            }
+            
+            public static void addModel(Instance3D instance)
+            {
+                string texName = TextureManager.getName(ModelManager.getModel(instance.model).texID);
+
+                if (texs.ContainsKey(texName))
+                {
+                    VertexModel m = ModelManager.getModel(instance.model);
+                    for (int i = 0; i < m.verts.Count; i++)
+                    {
+                        VertexPositionColorTexture v = m.verts[i];
+                        v.Position = Vector3.Transform(v.Position, instance.getMatrix());
+                        temp[texName].Add(v);
+                    }
+                    verts[texName] = temp[texName].ToArray();
+                }
+            }
+
+            public static void finalize()
+            {
+                temp.Clear();
+            }
+
+            public static void render(BasicEffect effect, Matrix transform)
+            {
+                effect.TextureEnabled = true;
+                effect.World = transform;
+
+                foreach (string key in verts.Keys)
+                {
+                    if (verts[key].Count() >= 3)
+                    {
+                        effect.Texture = texs[key];
+
+                        effect.CurrentTechnique.Passes[0].Apply();
+
+                        if (verts[key].Count() <= Int16.MaxValue)
+                        {
+                            effect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, verts[key], 0, verts[key].Count() / 3);
+                        }
+                        else
+                        {
+                            for (int i = 0; i < verts[key].Count(); i += Int16.MaxValue - 1)
+                            {
+                                effect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, verts[key], i, 
+                                    Math.Min((Int16.MaxValue - 1) / 3, (verts[key].Count() - i) / 3));
+                            }
+                        }
+                    }
+                }
+            }
+
+            static string getFirstOpenName(int pointer = 0)
+            {
+                if (!texs.Keys.Contains("tex_" + pointer))
+                    return "tex_" + pointer;
+                else
+                    getFirstOpenName(pointer + 1);
+                return "";
+            }
         }
 
         public class MultiModel : Instance3D
@@ -2935,10 +3098,10 @@ namespace Spine_Library
 
         public class Cylinder : VertexModel
         {
-            public Cylinder(Vector3 position, Texture2D skin, int radius = 1, float height = 1, int stepping = 20)
+            public Cylinder(Vector3 position, string skin, int radius = 1, float height = 1, int stepping = 20)
             {
                 Vector2 center = new Vector2(0, 0);
-                tex = skin;
+                texID = TextureManager.getID(skin);
                 this.orgin = position;
                 //figure out the difference
                 double increment = (Math.PI * 2) / stepping;
@@ -2961,10 +3124,10 @@ namespace Spine_Library
 
         public class ClosedCylinder : VertexModel
         {
-            public ClosedCylinder(Vector3 position, Texture2D skin, float radius = 1, float height = 1, int stepping = 20)
+            public ClosedCylinder(Vector3 position, string skin, float radius = 1, float height = 1, int stepping = 20)
             {
                 Vector2 center = new Vector2(0, 0);
-                tex = skin;
+                texID = TextureManager.getID(skin);
                 this.orgin = position;
                 //figure out the difference
                 double increment = (Math.PI * 2) / stepping;
@@ -2995,10 +3158,10 @@ namespace Spine_Library
 
         public class BackFaceCylinder : VertexModel
         {
-            public BackFaceCylinder(Vector3 position, Texture2D skin, Color color, float radius = 1, float height = 20, int stepping = 20)
+            public BackFaceCylinder(Vector3 position, string skin, Color color, float radius = 1, float height = 20, int stepping = 20)
             {
                 Vector2 center = new Vector2(0, 0);
-                tex = skin;
+                texID = TextureManager.getID(skin);
                 this.orgin = position;
                 //figure out the difference
                 double increment = (Math.PI * 2) / stepping;
@@ -3027,10 +3190,10 @@ namespace Spine_Library
 
         public class CylinderFace : VertexModel
         {
-            public CylinderFace(Vector3 position, Texture2D skin, Color color, float radius = 1, int stepping = 20)
+            public CylinderFace(Vector3 position, string skin, Color color, float radius = 1, int stepping = 20)
             {
                 Vector2 center = new Vector2(0, 0);
-                tex = skin;
+                texID = TextureManager.getID(skin);
                 this.orgin = position;
                 //figure out the difference
                 double increment = (Math.PI * 2) / stepping;
@@ -3053,15 +3216,17 @@ namespace Spine_Library
 
         public class Pyramid4 : VertexModel
         {
-            public Pyramid4(Vector3 position, Texture2D tex, Color color, float height = 10, float width = 10, float length = 10)
+            public Pyramid4(Vector3 position, string tex, Color color, float height = 10, float width = 10, float length = 10)
             {
                 this.orgin = position;
-                this.tex = tex;
+                texID = TextureManager.getID(tex);
+
                 Vector3 PEAK = new Vector3(width / 2, length / 2, height),
                     TLF = new Vector3(0, length, 0),
                     TRF = new Vector3(width, length, 0),
                     TRB = new Vector3(width, 0, 0),
                     TLB = new Vector3(0, 0, 0);
+
                 this.verts.Add(new VertexPositionColorTexture(PEAK, color, new Vector2(length / 2, 0)));
                 this.verts.Add(new VertexPositionColorTexture(TLF, color, new Vector2(0, height / 2)));
                 this.verts.Add(new VertexPositionColorTexture(TRF, color, new Vector2(length, height / 2)));
@@ -3090,10 +3255,10 @@ namespace Spine_Library
             public readonly Vector3 start, end;
             public readonly float height;
 
-            public Fence(Texture2D skin, Vector3 start, Vector3 end, float height)
+            public Fence(string skin, Vector3 start, Vector3 end, float height)
             {
                 position = start;
-                this.tex = skin;
+                texID = TextureManager.getID(skin);
 
                 this.height = height;
                 this.start = new Vector3(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y), Math.Min(start.Z, end.Z));
@@ -3101,7 +3266,7 @@ namespace Spine_Library
 
                 boundingBox = new BoundingBox(start + new Vector3(-0.5F, -0.5F, 0), end + new Vector3(0.5F, 0.5F, height));
 
-                relativeYaw = (float)extraMath.findAngle(new Vector2(start.X, start.Y), new Vector2(end.X, end.Y));
+                yaw = (float)extraMath.findAngle(new Vector2(start.X, start.Y), new Vector2(end.X, end.Y));
 
                 int length = (int)extraMath.getDistance(new Vector2(start.X, start.Y), new Vector2(end.X, end.Y));
                 int x = 0;
@@ -3282,9 +3447,9 @@ namespace Spine_Library
 
         public class Quad : VertexModel
         {
-            public Quad(Texture2D tex, Vector3 vert1, Vector3 vert2, Color color)
+            public Quad(string tex, Vector3 vert1, Vector3 vert2, Color color)
             {
-                this.tex = tex;
+                texID = TextureManager.getID(tex);
                 this.position = vert1;
                 this.orgin = new Vector3((vert2.X - vert1.X) / 2, (vert2.Y - vert1.Y) / 2, 0);
 
@@ -3300,13 +3465,13 @@ namespace Spine_Library
 
         public class Block : VertexModel
         {
-            public Block(Texture2D tex, Vector3 position, Vector3 endPos, Color color, float stretch = 1F)
+            public Block(string tex, Vector3 position, Vector3 endPos, Color color, float stretch = 1F)
             {
                 this.orgin = new Vector3(
                     Math.Min(position.X, endPos.X),
                     Math.Min(position.Y, endPos.Y),
                     Math.Min(position.Z, endPos.Z));
-                this.tex = tex;
+                texID = TextureManager.getID(tex);
 
                 float minX = 0, maxX = Math.Max(position.X, endPos.X) - Math.Min(position.X, endPos.X),
                     minY = 0, maxY = Math.Max(position.Y, endPos.Y) - Math.Min(position.Y, endPos.Y),
@@ -3357,13 +3522,13 @@ namespace Spine_Library
                 verts.Add(new VertexPositionColorTexture(new Vector3(maxX, minY, minZ), color, new Vector2(maxX, maxZ)));
             }
 
-            public Block(Texture2D tex, Vector3 position, Vector3 endPos, Color color)
+            public Block(string tex, Vector3 position, Vector3 endPos, Color color)
             {
                 this.orgin = new Vector3(
                     Math.Min(position.X, endPos.X),
                     Math.Min(position.Y, endPos.Y),
                     Math.Min(position.Z, endPos.Z));
-                this.tex = tex;
+                texID = TextureManager.getID(tex);
 
                 float minX = 0, maxX = Math.Max(position.X, endPos.X) - Math.Min(position.X, endPos.X),
                     minY = 0, maxY = Math.Max(position.Y, endPos.Y) - Math.Min(position.Y, endPos.Y),
@@ -3414,10 +3579,10 @@ namespace Spine_Library
                 verts.Add(new VertexPositionColorTexture(new Vector3(maxX, minY, minZ), color, new Vector2(maxX, maxZ)));
             }
 
-            public Block(Texture2D tex, BoundingBox box, Color color)
+            public Block(string tex, BoundingBox box, Color color)
             {
                 this.orgin = box.Min;
-                this.tex = tex;
+                texID = TextureManager.getID(tex);
 
                 float minX = 0, maxX = box.Max.X - box.Min.X,
                     minY = 0, maxY = box.Max.Y - box.Min.Y,
@@ -3471,10 +3636,10 @@ namespace Spine_Library
 
         public class ChopperBlade : VertexModel
         {
-            public ChopperBlade(Texture2D tex, Vector3 position, Color color, float stretch = 1F)
+            public ChopperBlade(string tex, Vector3 position, Color color, float stretch = 1F)
             {
                 this.orgin = position;
-                this.tex = tex;
+                texID = TextureManager.getID(tex);
 
                 ModelAdditions.AddOffsetCubeToModel(verts, new Vector3(-10 * stretch, -0.5F * stretch, 0),
                     new Vector3(10 * stretch, 0.5F * stretch, 0.25F * stretch), Color.White);
@@ -3489,10 +3654,10 @@ namespace Spine_Library
 
         public class Cone : VertexModel
         {
-            public Cone(Vector3 position, Texture2D skin, Color color, int radius = 1, int height = 20, int stepping = 20)
+            public Cone(Vector3 position, string skin, Color color, int radius = 1, int height = 20, int stepping = 20)
             {
                 Vector2 center = new Vector2(0, 0);
-                tex = skin;
+                texID = TextureManager.getID(skin);
                 this.orgin = position;
                 //figure out the difference
                 double increment = (Math.PI * 2) / stepping;

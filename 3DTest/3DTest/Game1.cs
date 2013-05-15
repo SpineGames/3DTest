@@ -33,7 +33,7 @@ namespace _3DTest
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         SpriteFont font;
-        BasicEffect basicEffect;
+        BasicEffect basicEffect, mapEffect;
         List<VertexPositionColor> triangles = new List<VertexPositionColor>();
         List<VertexPositionColorTexture> grid = new List<VertexPositionColorTexture>();
         Vector2 cameraPos = new Vector2(0, 0);
@@ -61,6 +61,7 @@ namespace _3DTest
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            this.TargetElapsedTime = TimeSpan.FromMilliseconds((1000 / 120));
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace _3DTest
 
             basicEffect = new BasicEffect(graphics.GraphicsDevice);
             basicEffect.VertexColorEnabled = true;
-            basicEffect.FogEnabled = true;
+            basicEffect.FogEnabled = false;
             basicEffect.FogColor = Color.DarkGray.ToVector3();
             basicEffect.FogStart = 15F;
             basicEffect.FogEnd = 300F;
@@ -152,79 +153,81 @@ namespace _3DTest
 
                         
             level = new Level(this, basicEffect, Content);
-            buildLevel(texs, guiTexs, TextureManager.getTex("tex_grid"), font, Content);
+            buildLevel(font, Content);
             level.player.position = new Vector3(-500, -500, 1);
-
-            int building = ModelManager.addModel(new Building(new Vector3(20, 20, 0), texs[2], 20, 20, 10), "building");
-            int road = ModelManager.addModel(new Block(null, new Vector3(0,0,0), new Vector3(20,20,0.01F), Color.White), "road");
         }
 
-        void buildLevel(Texture2D[] texs, Texture2D[] guitexs, Texture2D gridTex, SpriteFont font, ContentManager Content)
+        void buildLevel(SpriteFont font, ContentManager Content)
         {
+            TextureManager.loadToGlobalModel();
+
             #region Add Models
             //buildings
-            level.addModel(new Building(new Vector3(0, 0, 0), texs[2], 20, 20, 10), "house");
+            level.addModel(new Building(new Vector3(0, 0, 0), "tex_greyBrick", 20, 20, 10), "house");
 
             //trees
-            level.addModel(new Tree(new Vector3(0, 0, 0), texs[3]), "tree");
+            level.addModel(new Tree(new Vector3(0, 0, 0), "tex_verticalWood"), "tree");
             
             //sidewalks
-            level.addModel(new Block(texs[6], new Vector3(-1.5F, -1.5F, 0F), new Vector3(1.5F, 1.5F, 0.04F), Color.White, 1F), "sidewalkSingle");
-            level.addModel(new Block(texs[6], new Vector3(-1F, -1.5F, 0F), new Vector3(1F, 1.5F, 0.04F), Color.White, 1F), "sidewalkSmall_02");
-            level.addModel(new Block(texs[6], new Vector3(-2F, -1.5F, 0F), new Vector3(2F, 1.5F, 0.04F), Color.White, 1F), "sidewalkSmall");
-            level.addModel(new Block(texs[6], new Vector3(-4F, -1.5F, 0F), new Vector3(4F, 1.5F, 0.04F), Color.White, 1F), "sidewalkMedium");
-            level.addModel(new Block(texs[6], new Vector3(-8F, -1.5F, 0F), new Vector3(8F, 1.5F, 0.04F), Color.White, 1F), "sidewalkLong");
-            level.addModel(new Block(texs[6], new Vector3(-53F, -1.5F, 0F), new Vector3(53F, 1.5F, 0.04F), Color.White, 1F), "sidewalk106");
-            level.addModel(new Block(texs[6], new Vector3(-103F, -1.5F, 0F), new Vector3(103F, 1.5F, 0.04F), Color.White, 1F), "sidewalk206");
+            level.addModel(new Block("tex_pavingStones", new Vector3(-1.5F, -1.5F, 0F), new Vector3(1.5F, 1.5F, 0.04F), Color.White, 1F), "sidewalkSingle");
+            level.addModel(new Block("tex_pavingStones", new Vector3(-1F, -1.5F, 0F), new Vector3(1F, 1.5F, 0.04F), Color.White, 1F), "sidewalkSmall_02");
+            level.addModel(new Block("tex_pavingStones", new Vector3(-2F, -1.5F, 0F), new Vector3(2F, 1.5F, 0.04F), Color.White, 1F), "sidewalkSmall");
+            level.addModel(new Block("tex_pavingStones", new Vector3(-4F, -1.5F, 0F), new Vector3(4F, 1.5F, 0.04F), Color.White, 1F), "sidewalkMedium");
+            level.addModel(new Block("tex_pavingStones", new Vector3(-8F, -1.5F, 0F), new Vector3(8F, 1.5F, 0.04F), Color.White, 1F), "sidewalkLong");
+            level.addModel(new Block("tex_pavingStones", new Vector3(-53F, -1.5F, 0F), new Vector3(53F, 1.5F, 0.04F), Color.White, 1F), "sidewalk106");
+            level.addModel(new Block("tex_pavingStones", new Vector3(-103F, -1.5F, 0F), new Vector3(103F, 1.5F, 0.04F), Color.White, 1F), "sidewalk206");
 
             //roads
-            level.addModel(new Block(texs[7], new Vector3(-103, -8, 0.0F), new Vector3(103F, 8F, 0.02F), Color.White), "road206");
-            level.addModel(new Block(texs[7], new Vector3(-53, -8, 0.0F), new Vector3(53F, 8F, 0.02F), Color.White), "road106");
-            level.addModel(new Block(texs[7], new Vector3(-8, -8, 0.0F), new Vector3(8F, 8F, 0.02F), Color.White), "roadMedium");
-            level.addModel(new Block(texs[7], new Vector3(-4, -8, 0.0F), new Vector3(4F, 8F, 0.02F), Color.White), "roadSmall");
-            level.addModel(new Block(texs[7], new Vector3(-1, -8, 0.0F), new Vector3(1F, 8F, 0.02F), Color.White), "roadTiny");
+            level.addModel(new Block("tex_roadStraight", new Vector3(-103, -8, 0.0F), new Vector3(103F, 8F, 0.02F), Color.White), "road206");
+            level.addModel(new Block("tex_roadStraight", new Vector3(-53, -8, 0.0F), new Vector3(53F, 8F, 0.02F), Color.White), "road106");
+            level.addModel(new Block("tex_roadStraight", new Vector3(-8, -8, 0.0F), new Vector3(8F, 8F, 0.02F), Color.White), "roadMedium");
+            level.addModel(new Block("tex_roadStraight", new Vector3(-4, -8, 0.0F), new Vector3(4F, 8F, 0.02F), Color.White), "roadSmall");
+            level.addModel(new Block("tex_roadStraight", new Vector3(-1, -8, 0.0F), new Vector3(1F, 8F, 0.02F), Color.White), "roadTiny");
                         
             //intersections
-            level.addModel(new Block(texs[9], new Vector3(-8F, -8F, 0.0F), new Vector3(8F, 8F, 0.02F), Color.White), "intersection");
+            level.addModel(new Block("tex_roadIntersection", new Vector3(-8F, -8F, 0.0F), new Vector3(8F, 8F, 0.02F), Color.White), "intersection");
 
             //grass
-            level.addModel(new Block(texs[8], new Vector3(-8F, -8F, 0F), new Vector3(8F, 8F, 0.08F), Color.White, 1F), "grass16");
-            level.addModel(new Block(texs[8], new Vector3(-16F, -16F, 0F), new Vector3(16F, 16F, 0.08F), Color.White, 1F), "grass32");
-            level.addModel(new Block(texs[8], new Vector3(-32F, -32F, 0F), new Vector3(32F, 32F, 0.08F), Color.White, 1F), "grass64");
-            level.addModel(new Block(texs[8], new Vector3(-50F, -50F, 0F), new Vector3(50F, 50F, 0.08F), Color.White, 1F), "grass100");
-            level.addModel(new Block(texs[8], new Vector3(-100F, -50F, 0F), new Vector3(100F, 50F, 0.08F), Color.White, 1F), "grass200x100");
+            level.addModel(new Block("tex_grass", new Vector3(-8F, -8F, 0F), new Vector3(8F, 8F, 0.08F), Color.White, 1F), "grass16");
+            level.addModel(new Block("tex_grass", new Vector3(-16F, -16F, 0F), new Vector3(16F, 16F, 0.08F), Color.White, 1F), "grass32");
+            level.addModel(new Block("tex_grass", new Vector3(-32F, -32F, 0F), new Vector3(32F, 32F, 0.08F), Color.White, 1F), "grass64");
+            level.addModel(new Block("tex_grass", new Vector3(-50F, -50F, 0F), new Vector3(50F, 50F, 0.08F), Color.White, 1F), "grass100");
+            level.addModel(new Block("tex_grass", new Vector3(-100F, -50F, 0F), new Vector3(100F, 50F, 0.08F), Color.White, 1F), "grass200x100");
 
             //leaf piles
-            level.addModel(new Cone(new Vector3(0, 0, 0), texs[10], Color.White, 5, 2, 20), "leafPile");
+            level.addModel(new Cone(new Vector3(0, 0, 0), "tex_leaves", Color.White, 5, 2, 20), "leafPile");
+            
+            //fences
+            level.addModel(new Fence("tex_fenceTex", new Vector3(0, 0, 0), new Vector3(0, 100, 0), 2F), "FenceA");
+            level.addModel(new Fence("tex_fenceTex", new Vector3(0, 0, 0), new Vector3(200, 0, 0), 2F), "FenceB");
 
             #endregion
 
             #region Add Instances
             //grid
-            level.addUniqueModel(new Quad(gridTex, new Vector3(-500, -500, 0), new Vector3(500, 500, 0), Color.Green));
+            level.addUniqueModel(new Quad("tex_grid", new Vector3(-500, -500, 0), new Vector3(500, 500, 0), Color.Green));
 
             for (int x = -400; x < 450; x+=222)
                 for (int y = -500 + 22; y < 450; y+=122)
                 {
-                    ////fences
-                    //level.addFence(new Fence(texs[5], new Vector3(x + 50, y + 0, 0), new Vector3(x + 50, y + 100, 0), 2F));
-                    //level.addFence(new Fence(texs[5], new Vector3(x + 0, y + 0, 0), new Vector3(x + 0, y + 100, 0), 2F));
-                    //level.addFence(new Fence(texs[5], new Vector3(x + -50, y + 0, 0), new Vector3(x + -50, y + 100, 0), 2F));
-                    //level.addFence(new Fence(texs[5], new Vector3(x + 100, y + 0, 0), new Vector3(x + 100, y + 100, 0), 2F));
-                    //level.addFence(new Fence(texs[5], new Vector3(x + -100, y + 50, 0), new Vector3(x + 100, y + 50, 0), 2F));
-                    //level.addFence(new Fence(texs[5], new Vector3(x + -100, y + 0, 0), new Vector3(x + -100, y + 100, 0), 2F));
+                    //adds the fences
+                    level.addStaticModel("FenceA", new Vector3(x - 60, y, 0));
+                    level.addStaticModel("FenceA", new Vector3(x - 20, y, 0));
+                    level.addStaticModel("FenceA", new Vector3(x - 100, y, 0));
+                    level.addStaticModel("FenceA", new Vector3(x + 20, y, 0));
+                    level.addStaticModel("FenceA", new Vector3(x + 60, y, 0));
+                    level.addStaticModel("FenceA", new Vector3(x + 100, y, 0));
+                    level.addStaticModel("FenceB", new Vector3(x - 100, y + 50, 0));
 
                     //houses
-                    level.addStaticModel("house", new Vector3(x + -80, y + 80, 0));
+                    level.addStaticModel("house", new Vector3(x + -80, y + 80, 0), new Vector2(0, 0.3F));
                     level.addStaticModel("house", new Vector3(x + -80, y + 20, 0));
-                    level.addStaticModel("house", new Vector3(x + -60, y + 20, 0));
-                    level.addStaticModel("house", new Vector3(x + -60, y + 80, 0));
-                    level.addStaticModel("house", new Vector3(x + -20, y + 20, 0));
-                    level.addStaticModel("house", new Vector3(x + -20, y + 80, 0));
-                    level.addStaticModel("house", new Vector3(x + 20, y + 20, 0));
-                    level.addStaticModel("house", new Vector3(x + 20, y + 80, 0));
-                    level.addStaticModel("house", new Vector3(x + 60, y + 20, 0));
-                    level.addStaticModel("house", new Vector3(x + 60, y + 80, 0));
+                    level.addStaticModel("house", new Vector3(x + -40, y + 20, 0));
+                    level.addStaticModel("house", new Vector3(x + -40, y + 80, 0));
+                    level.addStaticModel("house", new Vector3(x, y + 20, 0));
+                    level.addStaticModel("house", new Vector3(x, y + 80, 0));
+                    level.addStaticModel("house", new Vector3(x + 40, y + 20, 0));
+                    level.addStaticModel("house", new Vector3(x + 40, y + 80, 0));
                     level.addStaticModel("house", new Vector3(x + 80, y + 20, 0));
                     level.addStaticModel("house", new Vector3(x + 80, y + 80, 0));
 
@@ -250,16 +253,18 @@ namespace _3DTest
                 }
 
             //notes
-            level.addNote(new Note(new Vector3(30, 40, 0.2F), font, guitexs[0], guitexs[1],
+            level.addNote(new Note(new Vector3(30, 40, 0.2F), font, "gui_noteScribbles", "gui_noteBackdrop",
                 Content.Load<String>("Notes/Note_0")
                 ));
 
-            level.addNote(new Note(new Vector3(-30.1F, 15, 2), font, guitexs[0], guitexs[1],
+            level.addNote(new Note(new Vector3(-30.1F, 15, 2), font, "gui_noteScribbles", "gui_noteBackdrop",
                 Content.Load<String>("Notes/Note_1"), 0));
             level.notes.Last().yaw = MathHelper.ToRadians(90);
             level.notes.Last().pitch = MathHelper.ToRadians(0);
             level.notes.Last().roll = MathHelper.ToRadians(270);
             #endregion          
+
+            level.finalize();
         }
 
         /// <summary>
@@ -336,7 +341,7 @@ namespace _3DTest
         private void drawGame(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.DarkGray);
-            level.render(basicEffect, gameTime, spriteBatch);            
+            level.render(basicEffect, gameTime, spriteBatch);
         }
 
         void updateIntro(GameTime gameTime)
@@ -422,7 +427,7 @@ namespace _3DTest
                 MathHelper.ToRadians(60),
                 (float)graphics.GraphicsDevice.Viewport.Width /
                 (float)graphics.GraphicsDevice.Viewport.Height,
-                0.1f, 300.0f);
+                0.1f, 400.0f);
         }        
 
         static class DrawFunctions3D
@@ -655,13 +660,13 @@ namespace _3DTest
             public Texture2D noteBack;
             public SpriteFont font;
 
-            public Note(Vector3 position, SpriteFont font, Texture2D tex, Texture2D noteBack, string text = "", float yaw = 0.2F)
+            public Note(Vector3 position, SpriteFont font, string tex, string noteBack, string text = "", float yaw = 0.2F)
             {
                 this.position = position;
                 this.yaw = yaw;
                 this.font = font;
-                this.tex = tex;
-                this.noteBack = noteBack;
+                texID = TextureManager.getID(tex);
+                this.noteBack = TextureManager.getTex(noteBack);
                 this.text = text;
 
                 verts.Add(new VertexPositionColorTexture(new Vector3(-0.1F, -0.1F, 0), Color.Tan, new Vector2(1, 0)));
@@ -690,13 +695,13 @@ namespace _3DTest
 
             public Player(Level level, Vector3 position, Texture2D gunTex, float height = 2)
             {
-                this.tex = gunTex;
+                texID = 0;
                 this.currentLevel = level;
                 this.position = position;
                 this.boundingBox = new BoundingBox(position - new Vector3(2, 2, 0), position + new Vector3(2, 2, height));
                 this.height = height;
 
-                this.currentGun = new MachineGun(position, gunTex);
+                this.currentGun = new MachineGun(position, "tex_greyBrick");
 
                 Vector2 center = Vector2.Zero;
                 float radius = 1.3F;
@@ -728,7 +733,7 @@ namespace _3DTest
                 lineList.Add(new VertexPositionColor(new Vector3(5, 0, height / 2), Color.Red));
             }
 
-            public void tickThis(BasicEffect effect, BoundingBox[] collisions, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions, GameTime gameTime, float gameSpeed = 0F)
+            public void tickThis(BasicEffect effect, BoundingOrientedBox[] collisions, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions, GameTime gameTime, float gameSpeed = 0F)
             {
                 if (gameSpeed > 0)
                 {
@@ -865,7 +870,7 @@ namespace _3DTest
                         zoom += 1F;
             }
 
-            private void physics(BoundingBox[] collisionChecks, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions)
+            private void physics(BoundingOrientedBox[] collisionChecks, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions)
             {
                 if (position.Z > 0)
                 {
@@ -878,103 +883,40 @@ namespace _3DTest
                     position.Z = 0;
                 }
 
-                Ray forwardCheck = new Ray(position + new Vector3(0,0,0.5F), new Vector3(0, MathHelper.WrapAngle((float)cameraAngle), 0));
-                Ray backCheck = new Ray(position + new Vector3(0, 0, 0.5F), new Vector3(0, MathHelper.WrapAngle((float)cameraAngle - MathHelper.Pi), 0));
-                Ray rightCheck = new Ray(position + new Vector3(0, 0, 0.5F), new Vector3(0, MathHelper.WrapAngle((float)cameraAngle + MathHelper.PiOver2), 0));
-                Ray leftCheck = new Ray(position + new Vector3(0, 0, 0.5F), new Vector3(0, MathHelper.WrapAngle((float)cameraAngle - MathHelper.PiOver2), 0));
+                Vector3 forwardCheck = new Vector3(extraMath.calculateVectorOffset(cameraAngle, speed), 0) + position;
+                Vector3 backCheck = new Vector3(extraMath.calculateVectorOffset(cameraAngle - MathHelper.Pi, speed), 0) + position;
+                Vector3 rightCheck = new Vector3(extraMath.calculateVectorOffset(cameraAngle + MathHelper.PiOver2, speed), 0) + position;
+                Vector3 leftCheck = new Vector3(extraMath.calculateVectorOffset(cameraAngle - MathHelper.PiOver2, speed), 0) + position;
+                Vector3 downCheck = new Vector3(0,0, -zAcc) + position;
 
-                foreach (BoundingBox model in collisionChecks)
+                foreach (BoundingOrientedBox model in collisionChecks)
                 {
                     if (speed > 0)
-                        if (forwardCheck.Intersects(model) < 0.5F)
-                        {
-                         position += new Vector3(extraMath.calculateVectorOffset(cameraAngle - MathHelper.Pi, speed), 0);
-                        }
-                    if (speed < 0)
-                        if (backCheck.Intersects(model) < 0.5F)
-                        {
-                            position += new Vector3(extraMath.calculateVectorOffset(cameraAngle, -speed), 0);
-                        }
-                    if (hSpeed > 0)
-                        if (rightCheck.Intersects(model) < 0.5F)
-                        {
-                            position += new Vector3(extraMath.calculateVectorOffset((cameraAngle - MathHelper.PiOver2), 0.25F), 0);
-                        }
-                    if (hSpeed < 0)
-                        if (leftCheck.Intersects(model) < 0.5F)
-                        {
-                            position += new Vector3(extraMath.calculateVectorOffset((cameraAngle + MathHelper.PiOver2), 0.25F), 0);
-                        }
-                }
-                foreach (BoundingPlane model in pCollisions)
-                {
-                    if (speed > 0)
-                        if (model.Collides(forwardCheck) < 0.5F)
+                        if (model.Contains(ref forwardCheck))
                         {
                             position += new Vector3(extraMath.calculateVectorOffset(cameraAngle - MathHelper.Pi, speed), 0);
                         }
                     if (speed < 0)
-                        if (model.Collides(backCheck) < 0.5F)
+                        if (model.Contains(ref backCheck))
                         {
                             position += new Vector3(extraMath.calculateVectorOffset(cameraAngle, -speed), 0);
                         }
                     if (hSpeed > 0)
-                        if (model.Collides(rightCheck) < 0.5F)
+                        if (model.Contains(ref rightCheck))
                         {
                             position += new Vector3(extraMath.calculateVectorOffset((cameraAngle - MathHelper.PiOver2), 0.25F), 0);
                         }
                     if (hSpeed < 0)
-                        if (model.Collides(leftCheck) < 0.5F)
+                        if (model.Contains(ref leftCheck))
                         {
                             position += new Vector3(extraMath.calculateVectorOffset((cameraAngle + MathHelper.PiOver2), 0.25F), 0);
                         }
-                }
-                foreach (BoundingSphere model in sCollisions)
-                {
-                    if (speed > 0)
-                        if (forwardCheck.Intersects(model) < 0.5F)
-                        {
-                            position += new Vector3(extraMath.calculateVectorOffset(cameraAngle - MathHelper.Pi, speed), 0);
-                        }
-                    if (speed < 0)
-                        if (backCheck.Intersects(model) < 0.5F)
-                        {
-                            position += new Vector3(extraMath.calculateVectorOffset(cameraAngle, -speed), 0);
-                        }
-                    if (hSpeed > 0)
-                        if (rightCheck.Intersects(model) < 0.5F)
-                        {
-                            position += new Vector3(extraMath.calculateVectorOffset((cameraAngle - MathHelper.PiOver2), 0.25F), 0);
-                        }
-                    if (hSpeed < 0)
-                        if (leftCheck.Intersects(model) < 0.5F)
-                        {
-                            position += new Vector3(extraMath.calculateVectorOffset((cameraAngle + MathHelper.PiOver2), 0.25F), 0);
-                        }
-                }
-
-                Ray zCheck = new Ray(position, new Vector3(0, 0, 1));
-                foreach (BoundingBox model in collisionChecks)
-                {
-                    float? dist = zCheck.Intersects(model);
-                    if (dist != null)
+                    if (zAcc > 0)
                     {
-                        position.Z = model.Max.Z;
-                        zSpeed = 0;
-                        zAcc = 0;
-                    }
-                }
-                foreach (BoundingSphere model in sCollisions)
-                {
-                    float? dist = zCheck.Intersects(model);
-                    if (dist <= -zSpeed & dist > 0)
-                    {
-                        position.Z += (float)dist;
-                    }
-                    if (dist <= -zSpeed)
-                    {
-                        zSpeed = 0;
-                        zAcc = 0;
+                        if (model.Contains(ref downCheck))
+                        {
+                            zAcc = 0;
+                        }
                     }
                 }
             }
@@ -985,9 +927,9 @@ namespace _3DTest
             Color bulletColor;
             float speed, damage = 10, zoom, shootSpeed, timer;
 
-            public Gun(Vector3 position, Texture2D tex, Color bulletColor, float zoom = 45, float shootSpeed = 1, float speed = 2F, float damage = 1)
+            public Gun(Vector3 position, string tex, Color bulletColor, float zoom = 45, float shootSpeed = 1, float speed = 2F, float damage = 1)
             {
-                this.tex = tex;
+                texID = TextureManager.getID(tex);
                 this.bulletColor = bulletColor;
                 this.zoom = zoom;
                 this.speed = speed;
@@ -1013,7 +955,7 @@ namespace _3DTest
 
         public class MachineGun : Gun
         {
-            public MachineGun(Vector3 position, Texture2D tex)
+            public MachineGun(Vector3 position, string tex)
                 : base(position, tex, Color.Yellow, 30, 10, 3, 2)
             {
                 ModelAdditions.AddCubeToModel(verts, new Vector3(0, -0.1F, 0), new Vector3(2, 0.1F, 0.2F), Color.Gray);
@@ -1025,12 +967,12 @@ namespace _3DTest
             Random rand = new Random();
             float rotorSpeed;
 
-            public Chopper(Vector3 pos, Texture2D[] texs, Color color)
+            public Chopper(Vector3 pos, Color color)
                 : base(pos, 1, 3, 5, 0)
             {
-                models.Add(new Block(texs[0], pos + new Vector3(-8, -3, 0), pos + new Vector3(4, 3, 3), color));
+                models.Add(new Block("tex_blankBlack", pos + new Vector3(-8, -3, 0), pos + new Vector3(4, 3, 3), color));
                 models.Last().orgin = new Vector3(-3, -3, 0);
-                models.Add(new ChopperBlade(texs[5], pos + new Vector3(0, 0, 3.5F), Color.White, 1F));
+                models.Add(new ChopperBlade("tex_greyBrick", pos + new Vector3(0, 0, 3.5F), Color.White, 1F));
                 models.Last().orgin = new Vector3(0, 0, 3.5F);
             }
 
@@ -1076,7 +1018,7 @@ namespace _3DTest
         {
             float waterLevel, midLevel, height, t;
 
-            public Pool(Vector3 position, Texture2D side, Texture2D water, Color sideColor, Color waterColor, float radius = 8, float height = 4F, float waterLevel = 0.75F)
+            public Pool(Vector3 position, string side, string water, Color sideColor, Color waterColor, float radius = 8, float height = 4F, float waterLevel = 0.75F)
             {
                 boundingSphere = new BoundingSphere(position, radius + 0.1F);
                 this.position = position;
@@ -1098,10 +1040,11 @@ namespace _3DTest
 
         public class Building : VertexModel
         {
-            public Building(Vector3 position, Texture2D skin, int length = 10, int width = 10, int height = 5, float yaw = 0F)
+            public Building(Vector3 position, string skin, int length = 10, int width = 10, int height = 5, float yaw = 0F)
             {
                 VertexModel m = new VertexModel();
-                this.tex = skin;
+                texID = TextureManager.getID(skin);
+
                 this.yaw = yaw;
                 orgin = new Vector3(-width / 2, -length / 2, 0);
                 this.boundingBox = new BoundingBox(position + orgin - new Vector3(1, 1, 1), position + new Vector3(length, width, height * 1.5F) + orgin + new Vector3(1, 1, 1));
@@ -1170,12 +1113,11 @@ namespace _3DTest
 
         public class Tree : VertexModel
         {
-            public Tree(Vector3 position, Texture2D skin, float radius = 1, int height = 20, int stepping = 10)
+            public Tree(Vector3 position, string texture, float radius = 1, int height = 20, int stepping = 10)
             {
                 this.boundingBox = new BoundingBox(new Vector3(position.X - radius * 1.5F, position.Y - radius * 1.5F, position.Z),
                     new Vector3(position.X + radius * 1.5F, position.Y + radius * 1.5F, position.Z + height));
                 Vector2 center = new Vector2(0, 0);
-                tex = skin;
                 this.position = position;
                 //figure out the difference
                 double increment = (Math.PI * 2) / stepping;
@@ -1204,23 +1146,130 @@ namespace _3DTest
             }
         }
 
+        /// <summary>  
+        /// Provides a set of methods for the rendering BoundingBoxs.  
+        /// </summary>  
+        public static class BoundingBoxRenderer
+        {
+            #region Fields
+
+            static VertexPositionColor[] verts = new VertexPositionColor[8];
+            static Int16[] indices = new Int16[]  
+        {  
+            0, 1,  
+            1, 2,  
+            2, 3,  
+            3, 0,  
+            0, 4,  
+            1, 5,  
+            2, 6,  
+            3, 7,  
+            4, 5,  
+            5, 6,  
+            6, 7,  
+            7, 4,  
+        };
+            #endregion
+
+            /// <summary>  
+            /// Renders the bounding box for debugging purposes.  
+            /// </summary>  
+            /// <param name="box">The box to render.</param>  
+            /// <param name="graphicsDevice">The graphics device to use when rendering.</param>  
+            /// <param name="view">The current view matrix.</param>  
+            /// <param name="projection">The current projection matrix.</param>  
+            /// <param name="color">The color to use drawing the lines of the box.</param>  
+            public static void Render(BoundingBox box, BasicEffect effect, Color color)
+            {
+                {
+                    effect.VertexColorEnabled = true;
+                    effect.TextureEnabled = false;
+                    effect.LightingEnabled = false;
+                }
+
+                Vector3[] corners = box.GetCorners();
+                for (int i = 0; i < 8; i++)
+                {
+                    verts[i].Position = corners[i];
+                    verts[i].Color = color;
+                }
+                
+                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+
+                    effect.GraphicsDevice.DrawUserIndexedPrimitives(
+                        // TEST PrimitiveType.LineList,  
+                        PrimitiveType.LineList,
+                       verts,
+                        0,
+                        8,
+                        indices,
+                        0,
+                        indices.Length / 2);
+
+                }
+            }
+
+            /// <summary>  
+            /// Renders the bounding box for debugging purposes.  
+            /// </summary>  
+            /// <param name="box">The box to render.</param>  
+            /// <param name="graphicsDevice">The graphics device to use when rendering.</param>  
+            /// <param name="view">The current view matrix.</param>  
+            /// <param name="projection">The current projection matrix.</param>  
+            /// <param name="color">The color to use drawing the lines of the box.</param>  
+            public static void Render(BoundingOrientedBox box, BasicEffect effect, Color color)
+            {
+                {
+                    effect.VertexColorEnabled = true;
+                    effect.TextureEnabled = false;
+                    effect.LightingEnabled = false;
+                }
+
+                Vector3[] corners = box.GetCorners();
+                for (int i = 0; i < 8; i++)
+                {
+                    verts[i].Position = corners[i];
+                    verts[i].Color = color;
+                }
+
+                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+
+                    effect.GraphicsDevice.DrawUserIndexedPrimitives(
+                        // TEST PrimitiveType.LineList,  
+                        PrimitiveType.LineList,
+                       verts,
+                        0,
+                        8,
+                        indices,
+                        0,
+                        indices.Length / 2);
+
+                }
+            }
+        } 
+
         public class Level
         {
             public Player player;
             public List<Note> notes = new List<Note>();
             public List<Note> pickedUpNotes = new List<Note>();
             List<Laser> lasers = new List<Laser>();
-            List<BoundingBox> collisions = new List<BoundingBox>();
+            List<BoundingOrientedBox> collisions = new List<BoundingOrientedBox>();
+            //List<BoundingBox> collisions = new List<BoundingBox>();
             List<BoundingSphere> sCollisions = new List<BoundingSphere>();
             List<BoundingPlane> pCollisions = new List<BoundingPlane>();
 
             List<Instance3D> staticInstances = new List<Instance3D>();
-            List<PushableInstance3D> pushableInstances = new List<PushableInstance3D>();
 
-            KeyWatcher debug = new KeyWatcher(Keys.F1);
-            KeyWatcher cameraMode = new KeyWatcher(Keys.F5);
-            KeyWatcher pause = new KeyWatcher(Keys.P);
+            KeyWatcher debug;
+            KeyWatcher cameraMode;
+            KeyWatcher pause;
             FPSHandler fps = new FPSHandler();
+            FPSHandler cps = new FPSHandler();
 
             ExplosionParticleSystem explosions;
             SmokePlumeParticleSystem smoke;
@@ -1232,7 +1281,6 @@ namespace _3DTest
             float gameSpeed = 1F;
             RasterizerState wireFrame;
             BasicEffect effect;
-            SpriteFont hudFont;
             Note drawingNote;
             Random rand = new Random();
             int scroll = 0;
@@ -1240,7 +1288,7 @@ namespace _3DTest
             Texture2D blank;
             Model turret;
             GameTime time, prevTime;
-            int fenceCount = 0, uniqueModels = 0;
+            int fenceCount = 0, uniqueModels = 0, staticInstanceCount, polyCount;
 
             public const byte C_EXPLOSION = 0, C_SMOKE = 1, C_FIRE = 2; 
 
@@ -1262,33 +1310,44 @@ namespace _3DTest
                 player = new Player(this, new Vector3(0, 0, 0), TextureManager.getTex("txt_greyBrick"), 2.5F);
                 wireFrame = new RasterizerState();
                 wireFrame.FillMode = FillMode.WireFrame;
-
+                
                 blank = new Texture2D(game.GraphicsDevice, 1, 1);
                 blank.SetData(new [] {Color.White});
+                
+                debug = new KeyWatcher(Keys.F1, new EventHandler(debugPressed));
+                cameraMode = new KeyWatcher(Keys.F5, new EventHandler(cameraChange));
+                pause = new KeyWatcher(Keys.P, new EventHandler(pausePressed));
+            }
+
+            public void finalize()
+            {
+                foreach (Instance3D instance in staticInstances)
+                {
+                    GlobalStaticModel.addModel(instance);
+                    polyCount += ModelManager.getModel(instance.model).verts.Count;
+                }
+                staticInstanceCount = staticInstances.Count;
+                staticInstances.Clear();
             }
 
             public void addStaticModel(string modelName, Vector3 position)
             {
-                staticInstances.Add(new Instance3D() { model = ModelManager.getIndex(modelName), position = position });
+                staticInstances.Add(new Instance3D() { model = ModelManager.getIndex(modelName), position = position,
+                pitch = ModelManager.getModel(modelName).pitch, 
+                yaw = ModelManager.getModel(modelName).yaw, 
+                roll = ModelManager.getModel(modelName).roll});
                 staticInstances.Last().rebuildMatrix(ModelManager.getModel(modelName).orgin, 1F);
-                collisions.Add(extraMath.shiftBox(ModelManager.getModel(modelName).boundingBox, position));
+                collisions.Add(new BoundingOrientedBox(extraMath.shiftBox(ModelManager.getModel(modelName).boundingBox, position),
+                    Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), 0)));
             }
-            
+                        
             public void addStaticModel(string modelName, Vector3 position, Vector2 direction)
             {
-                staticInstances.Add(new Instance3D() { model = ModelManager.getIndex(modelName), position = position, direction = direction });
+                staticInstances.Add(new Instance3D() { model = ModelManager.getIndex(modelName), position = position,
+                pitch = direction.X, yaw = direction.Y});
                 staticInstances.Last().rebuildMatrix(ModelManager.getModel(modelName).orgin, 1F);
-            }
-
-            public void addPushableModel(string modelName, Vector3 position, Vector2 direction, Vector3 pin)
-            {
-                pushableInstances.Add(new PushableInstance3D()
-                {
-                    model = modelName,
-                    position = position,
-                    direction = direction,
-                    boundingBox = ModelManager.getModel(modelName).boundingBox
-                });
+                collisions.Add(new BoundingOrientedBox(extraMath.shiftBox(ModelManager.getModel(modelName).boundingBox, position), 
+                    Quaternion.CreateFromAxisAngle(new Vector3(0,0,1),direction.Y)));
             }
 
             public void addModel(VertexModel model, string name)
@@ -1301,7 +1360,7 @@ namespace _3DTest
                 ModelManager.addModel((VertexModel)fence, "AGFence_" + fenceCount);
 
                 staticInstances.Add(new Instance3D() {model = ModelManager.getIndex("AGFence_" + fenceCount), position  = fence.position,
-                                                      direction = fence.direction
+                yaw = fence.yaw, pitch = fence.pitch
                 });
                 staticInstances.Last().rebuildMatrix(ModelManager.getModel("AGFence_" + fenceCount).orgin, 1F);
 
@@ -1309,7 +1368,7 @@ namespace _3DTest
                 //Plane p = new Plane(fence.start, fence.end + new Vector3(0, 0, fence.height), fence.end);
                 //p.D = 0;
                 //pCollisions.Add(new BoundingPlane(b, p));
-                collisions.Add(b);
+                collisions.Add(new BoundingOrientedBox(b));
 
                 fenceCount++;
             }
@@ -1326,7 +1385,7 @@ namespace _3DTest
             {
                 min = new Vector3(Math.Min(min.X, max.X), Math.Min(min.Y, max.Y), Math.Min(min.Z, max.Z));
                 max = new Vector3(Math.Max(min.X, max.X), Math.Max(min.Y, max.Y), Math.Max(min.Z, max.Z));
-                collisions.Add(new BoundingBox(min,max));
+                collisions.Add(new BoundingOrientedBox(new BoundingBox(min,max)));
             }
 
             public void addEmitter(byte type, Vector3 position, float partsPerSecond = 1)
@@ -1377,7 +1436,7 @@ namespace _3DTest
                     explosions.AddParticle(position, new Vector3(0, 0, 0.1F));
             }
 
-            public void tick(BasicEffect effect, GameTime gameTime)
+            public void tick(BasicEffect effect, GameTime gameTime, SpriteBatch batch = null)
             {
                 time = gameTime;
                 handleKeys();
@@ -1406,36 +1465,7 @@ namespace _3DTest
                 debug.update();
                 cameraMode.update();
                 pause.update();
-                
-                if (debug.wasPressed)
-                {
-                    boolDebug = !boolDebug;
-                }
 
-                if (cameraMode.wasPressed)
-                {
-                    if (player.cameraMode == Player.CameraModes.CM_FPS)
-                    {
-                        player.cameraMode = Player.CameraModes.CM_3P;
-                        return;
-                    }
-                    if (player.cameraMode == Player.CameraModes.CM_3P)
-                    {
-                        player.cameraMode = Player.CameraModes.CM_FPS;
-                        return;
-                    }
-                }
-
-                if (pause.wasPressed)
-                {
-                    if (gameSpeed == 0)
-                    {
-                        Mouse.SetPosition(400, 240);
-                        gameSpeed = 1;
-                    }
-                    else
-                        gameSpeed = 0;
-                }
 
                 if (Keyboard.GetState().IsKeyDown(Keys.E))
                 {
@@ -1489,6 +1519,11 @@ namespace _3DTest
                 foreach (Instance3D model in staticInstances)
                     ModelManager.drawModel(model, effect);
 
+                foreach (BoundingOrientedBox b in collisions)
+                    BoundingBoxRenderer.Render(b, effect, Color.Red);
+
+                GlobalStaticModel.render(effect, Matrix.CreateTranslation(0, 0, 0));
+
                 Note[] tempNotes = notes.ToArray();
                 for (int i = 0; i < notes.Count; i++)
                 {
@@ -1520,7 +1555,8 @@ namespace _3DTest
                     batch.DrawString(FontManager.getFont("GUI"), "Yaw: " + player.cameraAngle.ToString(), new Vector2(10, 55), Color.White, 0F, Vector2.Zero, 1F, SpriteEffects.None, 0);
                     batch.DrawString(FontManager.getFont("GUI"), "Pitch: " + player.cameraPitch.ToString(), new Vector2(10, 70), Color.White, 0F, Vector2.Zero, 1F, SpriteEffects.None, 0);
                     batch.DrawString(FontManager.getFont("GUI"), "Zoom: " + player.zoom.ToString(), new Vector2(10, 100), Color.White);
-                    batch.DrawString(FontManager.getFont("GUI"), "Instances:: " + staticInstances.Count, new Vector2(10, 115), Color.White);
+                    batch.DrawString(FontManager.getFont("GUI"), "Instances: " + staticInstanceCount, new Vector2(10, 115), Color.White);
+                    batch.DrawString(FontManager.getFont("GUI"), "Poly Count: " + polyCount, new Vector2(10, 130), Color.White);
                 }
 
                 if (gameSpeed == 0)
@@ -1554,6 +1590,36 @@ namespace _3DTest
             public void setGameSpeed(float gameSpeed)
             {
                 this.gameSpeed = gameSpeed;
+            }
+
+            void debugPressed(object o, EventArgs args)
+            {
+                boolDebug = !boolDebug;
+            }
+
+            void cameraChange(object o, EventArgs args)
+            {
+                if (player.cameraMode == Player.CameraModes.CM_FPS)
+                {
+                    player.cameraMode = Player.CameraModes.CM_3P;
+                    return;
+                }
+                if (player.cameraMode == Player.CameraModes.CM_3P)
+                {
+                    player.cameraMode = Player.CameraModes.CM_FPS;
+                    return;
+                }
+            }
+
+            void pausePressed(object o, EventArgs args)
+            {
+                if (gameSpeed == 0)
+                {
+                    Mouse.SetPosition(400, 240);
+                    gameSpeed = 1;
+                }
+                else
+                    gameSpeed = 0;
             }
         }
     }
