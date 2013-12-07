@@ -29,9 +29,9 @@ namespace Particle3DSample
         {
             settings.TextureName = "smoke";
 
-            settings.MaxParticles = 600;
+            settings.MaxParticles = 3000;
 
-            settings.Duration = TimeSpan.FromSeconds(2);
+            settings.Duration = TimeSpan.FromSeconds(4);
 
             settings.MinHorizontalVelocity = -2;
             settings.MaxHorizontalVelocity = 2;

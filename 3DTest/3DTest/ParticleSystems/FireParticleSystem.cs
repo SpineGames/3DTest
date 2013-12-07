@@ -30,20 +30,20 @@ namespace Particle3DSample
         {
             settings.TextureName = "fire";
 
-            settings.MaxParticles = 2400;
+            settings.MaxParticles = 3000;
 
             settings.Duration = TimeSpan.FromSeconds(2);
 
             settings.DurationRandomness = 1;
 
-            settings.MinHorizontalVelocity = 0;
-            settings.MaxHorizontalVelocity = 3;
+            settings.MinHorizontalVelocity = -1;
+            settings.MaxHorizontalVelocity = 1;
 
-            settings.MinVerticalVelocity = -3;
-            settings.MaxVerticalVelocity = 3;
+            settings.MinVerticalVelocity = -1;
+            settings.MaxVerticalVelocity = 1;
 
             // Set gravity upside down, so the flames will 'fall' upward.
-            settings.Gravity = new Vector3(0, 0, 4);
+            settings.Gravity = new Vector3(0, 0, 1);
 
             settings.MinColor = new Color(255, 255, 255, 92);
             settings.MaxColor = new Color(255, 255, 255, 128);

@@ -2939,7 +2939,19 @@ namespace Spine_Library
                 if (verts.Count >= 3)
                 {
                     basicEffect.CurrentTechnique.Passes[0].Apply();
-                    basicEffect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, verts.ToArray(), 0, verts.Count / 3);
+
+                    if (verts.Count() <= Int16.MaxValue)
+                    {
+                        basicEffect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, verts.ToArray(), 0, (int)(verts.Count() / 3));
+                    }
+                    else
+                    {
+                        for (int i = 0; i < verts.Count(); i += Int16.MaxValue - 1)
+                        {
+                            basicEffect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, verts.ToArray(), i,
+                                Math.Min((Int16.MaxValue - 1) / 3, (verts.Count() - i) / 3));
+                        }
+                    }
                 }
                 if (colorVerts.Count >= 3)
                 {
@@ -3026,7 +3038,6 @@ namespace Spine_Library
 
             public static void render(BasicEffect effect, Matrix transform)
             {
-                effect.TextureEnabled = true;
                 effect.World = transform;
 
                 foreach (string key in verts.Keys)

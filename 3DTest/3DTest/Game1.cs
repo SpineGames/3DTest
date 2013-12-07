@@ -29,14 +29,17 @@ namespace _3DTest
     /// </summary>
     public class Game1 : Game
     {
-        
+        public static DebugMode Debug;
+
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         SpriteFont font;
         BasicEffect basicEffect, mapEffect;
+        Effect NormalEffect;
         List<VertexPositionColor> triangles = new List<VertexPositionColor>();
         List<VertexPositionColorTexture> grid = new List<VertexPositionColorTexture>();
         Vector2 cameraPos = new Vector2(0, 0);
+        Terrain terrain = new Terrain();
 
         GraphicsManager graphicsManager = new GraphicsManager();
         Random random = new Random();
@@ -97,9 +100,16 @@ namespace _3DTest
             basicEffect.FogColor = Color.DarkGray.ToVector3();
             basicEffect.FogStart = 15F;
             basicEffect.FogEnd = 300F;
+
+            mapEffect = new BasicEffect(graphics.GraphicsDevice);
+            mapEffect.VertexColorEnabled = true;
+            mapEffect.FogEnabled = false;
+            mapEffect.FogColor = Color.DarkGray.ToVector3();
+            mapEffect.FogStart = 15F;
+            mapEffect.FogEnd = 300F;
+
+            NormalEffect = Content.Load<Effect>("effect");            
             
-
-
             Texture2D[] texs = new Texture2D[18];
             for (int i = 0; i < texs.Length; i++)
             {
@@ -165,6 +175,7 @@ namespace _3DTest
             //buildings
             level.addModel(new Building(new Vector3(0, 0, 0), "tex_greyBrick", 20, 20, 10), "house");
 
+            level.addModel(new Building(new Vector3(0, 0, 0), "tex_greyBrick", 5, 5, 5), "crate");
             //trees
             level.addModel(new Tree(new Vector3(0, 0, 0), "tex_verticalWood"), "tree");
             
@@ -230,6 +241,16 @@ namespace _3DTest
                     level.addStaticModel("house", new Vector3(x + 40, y + 80, 0));
                     level.addStaticModel("house", new Vector3(x + 80, y + 20, 0));
                     level.addStaticModel("house", new Vector3(x + 80, y + 80, 0));
+
+
+                    level.addStaticModel("crate", new Vector3(x - 65, y + 80, 0));
+
+                    //Add smoke
+                    level.addEmitter(1, new Vector3(x, y, 0), 5);
+                    //Add fire
+                    level.addEmitter(2, new Vector3(x, y, 0), 10);
+                    //Add sparks
+                    level.addEmitter(3, new Vector3(x + 20, y, 0), 10);
 
                     //roads & sidewalks E/W set 1
                     level.addStaticModel("road206", new Vector3(x, y -11, 0));
@@ -358,7 +379,11 @@ namespace _3DTest
 
         void drawIntro(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);            
+            spriteBatch.Begin();
+            spriteBatch.Draw(vidoePlayer.GetTexture(),
+                new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height),
+                Color.White);
+            spriteBatch.End();
         }
 
         void updateMenu(GameTime gameTime)
@@ -1181,11 +1206,7 @@ namespace _3DTest
             /// <param name="color">The color to use drawing the lines of the box.</param>  
             public static void Render(BoundingBox box, BasicEffect effect, Color color)
             {
-                {
-                    effect.VertexColorEnabled = true;
-                    effect.TextureEnabled = false;
-                    effect.LightingEnabled = false;
-                }
+                effect.TextureEnabled = false;
 
                 Vector3[] corners = box.GetCorners();
                 for (int i = 0; i < 8; i++)
@@ -1209,6 +1230,8 @@ namespace _3DTest
                         indices.Length / 2);
 
                 }
+
+                effect.TextureEnabled = true;
             }
 
             /// <summary>  
@@ -1221,11 +1244,7 @@ namespace _3DTest
             /// <param name="color">The color to use drawing the lines of the box.</param>  
             public static void Render(BoundingOrientedBox box, BasicEffect effect, Color color)
             {
-                {
-                    effect.VertexColorEnabled = true;
-                    effect.TextureEnabled = false;
-                    effect.LightingEnabled = false;
-                }
+                effect.TextureEnabled = false;
 
                 Vector3[] corners = box.GetCorners();
                 for (int i = 0; i < 8; i++)
@@ -1249,6 +1268,8 @@ namespace _3DTest
                         indices.Length / 2);
 
                 }
+
+                effect.TextureEnabled = true;
             }
         } 
 
@@ -1274,6 +1295,7 @@ namespace _3DTest
             ExplosionParticleSystem explosions;
             SmokePlumeParticleSystem smoke;
             FireParticleSystem fire;
+            SparksParticleSystem sparks;
             List<ParticleEmitter> emitters = new List<ParticleEmitter>();
             Effect effect2;
             
@@ -1300,6 +1322,8 @@ namespace _3DTest
                 smoke.Initialize();
                 fire = new FireParticleSystem(game, game.Content);
                 fire.Initialize();
+                sparks = new SparksParticleSystem(game, game.Content);
+                sparks.Initialize();
 
                 effect2 = game.Content.Load<Effect>("effect");
                 game.Components.Add(explosions);
@@ -1401,6 +1425,9 @@ namespace _3DTest
                     case 2:
                         emitters.Add(new ParticleEmitter(fire, partsPerSecond, position));
                         break;
+                    case 3:
+                        emitters.Add(new ParticleEmitter(sparks, partsPerSecond, position));
+                            break;
                 }
             }
 
@@ -1416,6 +1443,9 @@ namespace _3DTest
                         break;
                     case 2:
                         emitters.Add(new ParticleEmitter(fire, partsPerSecond, position, endPos));
+                        break;
+                    case 3:
+                        emitters.Add(new ParticleEmitter(sparks, partsPerSecond, position, endPos));
                         break;
                 }
             }
@@ -1504,10 +1534,9 @@ namespace _3DTest
                 fps.onDraw(gameTime);
                 effect.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                 effect.GraphicsDevice.BlendState = BlendState.AlphaBlend;
-                effect.TextureEnabled = true;
                 effect.GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicWrap;
-                
-                if (boolDebug)
+
+                if (Debug == DebugMode.Full)
                 {
                     effect.GraphicsDevice.RasterizerState = wireFrame;  
                 }
@@ -1519,8 +1548,11 @@ namespace _3DTest
                 foreach (Instance3D model in staticInstances)
                     ModelManager.drawModel(model, effect);
 
-                foreach (BoundingOrientedBox b in collisions)
-                    BoundingBoxRenderer.Render(b, effect, Color.Red);
+                if (Debug != DebugMode.None)
+                {
+                    foreach (BoundingOrientedBox b in collisions)
+                        BoundingBoxRenderer.Render(b, effect, Color.Red);
+                }
 
                 GlobalStaticModel.render(effect, Matrix.CreateTranslation(0, 0, 0));
 
@@ -1533,12 +1565,10 @@ namespace _3DTest
 
                 player.render(effect, player.position, player.direction);
 
-
-
                 explosions.Draw(gameTime);
                 smoke.Draw(gameTime);
                 fire.Draw(gameTime);
-                
+                sparks.Draw(gameTime);
                 
                 batch.Begin();
 
@@ -1594,7 +1624,7 @@ namespace _3DTest
 
             void debugPressed(object o, EventArgs args)
             {
-                boolDebug = !boolDebug;
+                Debug = (DebugMode)((int)Debug + 1 >= 3 ? 0 : (int)Debug + 1);
             }
 
             void cameraChange(object o, EventArgs args)
@@ -1621,6 +1651,51 @@ namespace _3DTest
                 else
                     gameSpeed = 0;
             }
+        }
+
+        public class Terrain
+        {
+            float[,] heightmap = new float[100,100];
+            VertexModel model = new VertexModel();
+
+            public Terrain()
+            {
+                Random rand = new Random();
+                for (int x = 0; x < 100; x++)
+                {
+                    for (int y = 0; y < 100; y++)
+                    {
+                        heightmap[x, y] = rand.Next(3,4);
+                    }
+                }
+                for (int x = 0; x < 100 - 1; x++)
+                {
+                    for (int y = 0; y < 100 -1; y++)
+                    {
+                        model.verts.Add(new VertexPositionColorTexture(new Vector3(x + 1, y, heightmap[x + 1, y]), Color.Green, new Vector2(1, 0)));
+                        model.verts.Add(new VertexPositionColorTexture(new Vector3(x, y, heightmap[x, y]), Color.Green, new Vector2(0, 0)));
+                        model.verts.Add(new VertexPositionColorTexture(new Vector3(x, y + 1, heightmap[x, y + 1]), Color.Green, new Vector2(0, 1)));
+
+                        model.verts.Add(new VertexPositionColorTexture(new Vector3(x + 1, y + 1, heightmap[x + 1, y]), Color.Green, new Vector2(1, 1)));
+                        model.verts.Add(new VertexPositionColorTexture(new Vector3(x + 1, y, heightmap[x, y]), Color.Green, new Vector2(1, 0)));
+                        model.verts.Add(new VertexPositionColorTexture(new Vector3(x, y + 1, heightmap[x, y + 1]), Color.Green, new Vector2(0, 1)));
+                    }
+                }
+
+                model.texID = 8;
+            }
+
+            public void render(BasicEffect effect)
+            {
+                model.render(effect, Vector3.Zero, effect.World);
+            }
+        }
+
+        public enum DebugMode
+        {
+            None,
+            Partial,
+            Full
         }
     }
 }
