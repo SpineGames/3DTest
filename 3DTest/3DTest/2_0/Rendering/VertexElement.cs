@@ -164,7 +164,7 @@ namespace _3DTest._2_0.Rendering
         /// </summary>
         /// <exception cref="InvalidOperationException">
         /// Thrown if this element was already finalized</exception>
-        public void Finalize()
+        public void Finish()
         {
             if (Finalized)
                 throw new InvalidOperationException("The vertex element was already finalized");

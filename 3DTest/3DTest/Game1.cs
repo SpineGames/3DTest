@@ -711,9 +711,9 @@ namespace _3DTest
             Vector3 prevPos;
             public double zoom = 45, cameraAngle = 0, cameraPitch = 0;
             public CameraModes cameraMode = CameraModes.CM_FPS;
-            new public Vector3 direction;
+            public Vector3 direction;
             Gun currentGun;
-            float zAcc, zSpeed, maxSpeed = 0.2F, speed = 0, hSpeed;
+            float zAcc, maxSpeed = 0.2F, speed = 0, hSpeed;
             public enum CameraModes { CM_FPS = 0, CM_3P = 1 }
             KeyWatcher space = new KeyWatcher(Keys.Space);
             Timer spaceTapTimer = new Timer(TimeSpan.Zero);
@@ -758,7 +758,7 @@ namespace _3DTest
                 lineList.Add(new VertexPositionColor(new Vector3(5, 0, height / 2), Color.Red));
             }
 
-            public void tickThis(BasicEffect effect, BoundingOrientedBox[] collisions, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions, GameTime gameTime, float gameSpeed = 0F)
+            public void tickThis(BasicEffect effect, OrientedBoundingBox[] collisions, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions, GameTime gameTime, float gameSpeed = 0F)
             {
                 if (gameSpeed > 0)
                 {
@@ -895,7 +895,7 @@ namespace _3DTest
                         zoom += 1F;
             }
 
-            private void physics(BoundingOrientedBox[] collisionChecks, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions)
+            private void physics(OrientedBoundingBox[] collisionChecks, BoundingSphere[] sCollisions, BoundingPlane[] pCollisions)
             {
                 if (position.Z > 0)
                 {
@@ -914,7 +914,7 @@ namespace _3DTest
                 Vector3 leftCheck = new Vector3(extraMath.calculateVectorOffset(cameraAngle - MathHelper.PiOver2, speed), 0) + position;
                 Vector3 downCheck = new Vector3(0,0, -zAcc) + position;
 
-                foreach (BoundingOrientedBox model in collisionChecks)
+                foreach (OrientedBoundingBox model in collisionChecks)
                 {
                     if (speed > 0)
                         if (model.Contains(ref forwardCheck))
@@ -1242,7 +1242,7 @@ namespace _3DTest
             /// <param name="view">The current view matrix.</param>  
             /// <param name="projection">The current projection matrix.</param>  
             /// <param name="color">The color to use drawing the lines of the box.</param>  
-            public static void Render(BoundingOrientedBox box, BasicEffect effect, Color color)
+            public static void Render(OrientedBoundingBox box, BasicEffect effect, Color color)
             {
                 effect.TextureEnabled = false;
 
@@ -1279,7 +1279,7 @@ namespace _3DTest
             public List<Note> notes = new List<Note>();
             public List<Note> pickedUpNotes = new List<Note>();
             List<Laser> lasers = new List<Laser>();
-            List<BoundingOrientedBox> collisions = new List<BoundingOrientedBox>();
+            List<OrientedBoundingBox> collisions = new List<OrientedBoundingBox>();
             //List<BoundingBox> collisions = new List<BoundingBox>();
             List<BoundingSphere> sCollisions = new List<BoundingSphere>();
             List<BoundingPlane> pCollisions = new List<BoundingPlane>();
@@ -1361,7 +1361,7 @@ namespace _3DTest
                 yaw = ModelManager.getModel(modelName).yaw, 
                 roll = ModelManager.getModel(modelName).roll});
                 staticInstances.Last().rebuildMatrix(ModelManager.getModel(modelName).orgin, 1F);
-                collisions.Add(new BoundingOrientedBox(extraMath.shiftBox(ModelManager.getModel(modelName).boundingBox, position),
+                collisions.Add(new OrientedBoundingBox(extraMath.shiftBox(ModelManager.getModel(modelName).boundingBox, position),
                     Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), 0)));
             }
                         
@@ -1370,7 +1370,7 @@ namespace _3DTest
                 staticInstances.Add(new Instance3D() { model = ModelManager.getIndex(modelName), position = position,
                 pitch = direction.X, yaw = direction.Y});
                 staticInstances.Last().rebuildMatrix(ModelManager.getModel(modelName).orgin, 1F);
-                collisions.Add(new BoundingOrientedBox(extraMath.shiftBox(ModelManager.getModel(modelName).boundingBox, position), 
+                collisions.Add(new OrientedBoundingBox(extraMath.shiftBox(ModelManager.getModel(modelName).boundingBox, position), 
                     Quaternion.CreateFromAxisAngle(new Vector3(0,0,1),direction.Y)));
             }
 
@@ -1392,7 +1392,7 @@ namespace _3DTest
                 //Plane p = new Plane(fence.start, fence.end + new Vector3(0, 0, fence.height), fence.end);
                 //p.D = 0;
                 //pCollisions.Add(new BoundingPlane(b, p));
-                collisions.Add(new BoundingOrientedBox(b));
+                collisions.Add(new OrientedBoundingBox(b));
 
                 fenceCount++;
             }
@@ -1409,7 +1409,7 @@ namespace _3DTest
             {
                 min = new Vector3(Math.Min(min.X, max.X), Math.Min(min.Y, max.Y), Math.Min(min.Z, max.Z));
                 max = new Vector3(Math.Max(min.X, max.X), Math.Max(min.Y, max.Y), Math.Max(min.Z, max.Z));
-                collisions.Add(new BoundingOrientedBox(new BoundingBox(min,max)));
+                collisions.Add(new OrientedBoundingBox(new BoundingBox(min,max)));
             }
 
             public void addEmitter(byte type, Vector3 position, float partsPerSecond = 1)
@@ -1550,7 +1550,7 @@ namespace _3DTest
 
                 if (Debug != DebugMode.None)
                 {
-                    foreach (BoundingOrientedBox b in collisions)
+                    foreach (OrientedBoundingBox b in collisions)
                         BoundingBoxRenderer.Render(b, effect, Color.Red);
                 }
 

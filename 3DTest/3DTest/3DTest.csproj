@@ -136,10 +136,12 @@
   <ItemGroup>
     <Compile Include="2_0\Game2.cs" />
     <Compile Include="2_0\Instancing\ThreeDInstance.cs" />
+    <Compile Include="2_0\Instancing\World.cs" />
     <Compile Include="2_0\Rendering\Camera.cs" />
     <Compile Include="2_0\Rendering\Utils.cs" />
     <Compile Include="2_0\Rendering\VertexElement.cs" />
-    <Compile Include="BoundingOrientedBox.cs" />
+    <Compile Include="2_0\OrientedBoundingBox.cs" />
+    <Compile Include="2_0\Simplex.cs" />
     <Compile Include="ParticleEmitter.cs" />
     <Compile Include="ParticleSettings.cs" />
     <Compile Include="ParticleSystem.cs" />

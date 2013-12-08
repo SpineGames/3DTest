@@ -12,12 +12,35 @@ namespace _3DTest._2_0.Rendering
     /// </summary>
     public class Utils
     {
+        #region Line
         private static VertexPositionColor[] lineVerts = new VertexPositionColor[2];
         private static int[] lineIndices = new int[2] { 0, 1 };
+        #endregion
 
+        #region quad
         private static VertexPositionColor[] quadCVerts = new VertexPositionColor[4];
         private static VertexPositionColorTexture[] quadTVerts = new VertexPositionColorTexture[4];
         private static int[] quadIndices = new int[4] { 0, 1, 2, 3};
+        #endregion
+
+        #region Bounding box
+        static VertexPositionColor[] verts = new VertexPositionColor[8];
+        static Int16[] indices = new Int16[]  
+        {  
+            0, 1,  
+            1, 2,  
+            2, 3,  
+            3, 0,  
+            0, 4,  
+            1, 5,  
+            2, 6,  
+            3, 7,  
+            4, 5,  
+            5, 6,  
+            6, 7,  
+            7, 4,  
+        };
+        #endregion
 
         /// <summary>
         /// Draws a single line segment between two points
@@ -37,6 +60,58 @@ namespace _3DTest._2_0.Rendering
 
             Graphics.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList,
                 lineVerts, 0, 2, lineIndices, 0, 1);
+        }
+
+        /// <summary>
+        /// Draws a bounding box with lines
+        /// </summary>
+        /// <param name="Box">The first point</param>
+        /// <param name="color">The color of the line to draw</param>
+        /// <param name="Graphics">The GraphicsDevice to draw with</param>
+        public static void DrawBoundingBox
+            (BoundingBox Box, Color color, GraphicsDevice Graphics)
+        {
+            Vector3[] corners = Box.GetCorners();
+            for (int i = 0; i < 8; i++)
+            {
+                verts[i].Position = corners[i];
+                verts[i].Color = color;
+            }
+            Graphics.DrawUserIndexedPrimitives(
+                // TEST PrimitiveType.LineList,  
+                PrimitiveType.LineList,
+               verts,
+                0,
+                8,
+                indices,
+                0,
+                indices.Length / 2);
+        }
+
+        /// <summary>
+        /// Draws a bounding box with lines
+        /// </summary>
+        /// <param name="Box">The first point</param>
+        /// <param name="color">The color of the line to draw</param>
+        /// <param name="Graphics">The GraphicsDevice to draw with</param>
+        public static void DrawBoundingBox
+            (OrientedBoundingBox Box, Color color, GraphicsDevice Graphics)
+        {
+            Vector3[] corners = Box.GetCorners();
+            for (int i = 0; i < 8; i++)
+            {
+                verts[i].Position = corners[i];
+                verts[i].Color = color;
+            }
+            Graphics.DrawUserIndexedPrimitives(
+                // TEST PrimitiveType.LineList,  
+                PrimitiveType.LineList,
+               verts,
+                0,
+                8,
+                indices,
+                0,
+                indices.Length / 2);
         }
 
         /// <summary>

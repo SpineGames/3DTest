@@ -14,7 +14,7 @@ namespace _3DTest
     /// <summary>
     /// Bounding volume using an oriented bounding box.
     /// </summary>
-    public struct BoundingOrientedBox : IEquatable<BoundingOrientedBox>
+    public struct OrientedBoundingBox : IEquatable<OrientedBoundingBox>
     {
         #region Constants
         public const int CornerCount = 8;
@@ -34,7 +34,7 @@ namespace _3DTest
         /// <summary>
         /// Create an oriented box with the given center, half-extents, and orientation.
         /// </summary>
-        public BoundingOrientedBox(Vector3 center, Vector3 halfExtents, Quaternion orientation)
+        public OrientedBoundingBox(Vector3 center, Vector3 halfExtents, Quaternion orientation)
         {
             Center = center;
             HalfExtent = halfExtents;
@@ -44,7 +44,7 @@ namespace _3DTest
         /// <summary>
         /// Create an oriented box from an axis-aligned box.
         /// </summary>
-        public BoundingOrientedBox(BoundingBox box)
+        public OrientedBoundingBox(BoundingBox box)
         {
             Vector3 mid = (box.Min + box.Max) * 0.5f;
             Vector3 halfExtent = (box.Max - box.Min) * 0.5f;
@@ -56,7 +56,7 @@ namespace _3DTest
         /// <summary>
         /// Create an oriented box from an axis-aligned box.
         /// </summary>
-        public BoundingOrientedBox(BoundingBox box, Quaternion orientation)
+        public OrientedBoundingBox(BoundingBox box, Quaternion orientation)
         {
             Vector3 mid = (box.Min + box.Max) * 0.5f;
             Vector3 halfExtent = (box.Max - box.Min) * 0.5f;
@@ -71,9 +71,9 @@ namespace _3DTest
         /// <param name="rotation"></param>
         /// <param name="translation"></param>
         /// <returns>A new bounding box, transformed relative to this one</returns>
-        public BoundingOrientedBox Transform(Quaternion rotation, Vector3 translation)
+        public OrientedBoundingBox Transform(Quaternion rotation, Vector3 translation)
         {
-            return new BoundingOrientedBox(Vector3.Transform(Center, rotation) + translation,
+            return new OrientedBoundingBox(Vector3.Transform(Center, rotation) + translation,
                                             HalfExtent,
                                             Orientation * rotation);
         }
@@ -84,9 +84,9 @@ namespace _3DTest
         /// <param name="rotation"></param>
         /// <param name="position"></param>
         /// <returns>A new bounding box, transformed relative to this one</returns>
-        public BoundingOrientedBox Transform(Vector3 position, Quaternion rotation)
+        public OrientedBoundingBox Transform(Vector3 position, Quaternion rotation)
         {
-            return new BoundingOrientedBox(position,
+            return new OrientedBoundingBox(position,
                                             HalfExtent,
                                             Orientation * rotation);
         }
@@ -96,9 +96,9 @@ namespace _3DTest
         /// by a translation
         /// </summary>
         /// <returns>A new bounding box, transformed relative to this one</returns>
-        public BoundingOrientedBox Transform(float scale, Quaternion rotation, Vector3 translation)
+        public OrientedBoundingBox Transform(float scale, Quaternion rotation, Vector3 translation)
         {
-            return new BoundingOrientedBox(Vector3.Transform(Center * scale, rotation) + translation,
+            return new OrientedBoundingBox(Vector3.Transform(Center * scale, rotation) + translation,
                                             HalfExtent * scale,
                                             Orientation * rotation);
         }
@@ -107,16 +107,16 @@ namespace _3DTest
 
         #region IEquatable implementation
 
-        public bool Equals(BoundingOrientedBox other)
+        public bool Equals(OrientedBoundingBox other)
         {
             return (Center == other.Center && HalfExtent == other.HalfExtent && Orientation == other.Orientation);
         }
         
         public override bool Equals(Object obj)
         {
-            if (obj != null && obj is BoundingOrientedBox)
+            if (obj != null && obj is OrientedBoundingBox)
             {
-                BoundingOrientedBox other = (BoundingOrientedBox)obj;
+                OrientedBoundingBox other = (OrientedBoundingBox)obj;
                 return (Center == other.Center && HalfExtent == other.HalfExtent && Orientation == other.Orientation);
             }
             else
@@ -130,12 +130,12 @@ namespace _3DTest
             return Center.GetHashCode() ^ HalfExtent.GetHashCode() ^ Orientation.GetHashCode();
         }
 
-        public static bool operator==(BoundingOrientedBox a, BoundingOrientedBox b)
+        public static bool operator==(OrientedBoundingBox a, OrientedBoundingBox b)
         {
             return Equals(a, b);
         }
 
-        public static bool operator!=(BoundingOrientedBox a, BoundingOrientedBox b)
+        public static bool operator!=(OrientedBoundingBox a, OrientedBoundingBox b)
         {
             return !Equals(a, b);
         }
@@ -186,14 +186,14 @@ namespace _3DTest
         /// <summary>
         /// Determine if box A contains, intersects, or is disjoint from box B.
         /// </summary>
-        public static ContainmentType Contains(ref BoundingBox boxA, ref BoundingOrientedBox oboxB)
+        public static ContainmentType Contains(ref BoundingBox boxA, ref OrientedBoundingBox oboxB)
         {
             Vector3 boxA_halfExtent = (boxA.Max - boxA.Min) * 0.5f;
             Vector3 boxA_center = (boxA.Max + boxA.Min) * 0.5f;
             Matrix mb = Matrix.CreateFromQuaternion(oboxB.Orientation);
             mb.Translation = oboxB.Center - boxA_center;
 
-            return BoundingOrientedBox.ContainsRelativeBox(ref boxA_halfExtent, ref oboxB.HalfExtent, ref mb);
+            return OrientedBoundingBox.ContainsRelativeBox(ref boxA_halfExtent, ref oboxB.HalfExtent, ref mb);
         }
 
         #endregion
@@ -203,7 +203,7 @@ namespace _3DTest
         /// <summary>
         /// Returns true if this box intersects the given other box.
         /// </summary>
-        public bool Intersects(ref BoundingOrientedBox other)
+        public bool Intersects(ref OrientedBoundingBox other)
         {
             return Contains(ref other) != ContainmentType.Disjoint;
         }
@@ -212,7 +212,7 @@ namespace _3DTest
         /// Determine whether this box contains, intersects, or is disjoint from
         /// the given other box.
         /// </summary>
-        public ContainmentType Contains(ref BoundingOrientedBox other)
+        public ContainmentType Contains(ref OrientedBoundingBox other)
         {
             // Build the 3x3 rotation matrix that defines the orientation of 'other' relative to this box
             Quaternion invOrient;
@@ -256,7 +256,7 @@ namespace _3DTest
         /// Determine whether the given frustum contains, intersects, or is disjoint from
         /// the given oriented box.
         /// </summary>
-        public static ContainmentType Contains(BoundingFrustum frustum, ref BoundingOrientedBox obox)
+        public static ContainmentType Contains(BoundingFrustum frustum, ref OrientedBoundingBox obox)
         {
             return frustum.Contains(obox.ConvertToFrustum());
         }
@@ -321,7 +321,7 @@ namespace _3DTest
         /// <summary>
         /// Test whether a BoundingSphere contains, intersects, or is disjoint from a BoundingOrientedBox
         /// </summary>
-        public static ContainmentType Contains(ref BoundingSphere sphere, ref BoundingOrientedBox box)
+        public static ContainmentType Contains(ref BoundingSphere sphere, ref OrientedBoundingBox box)
         {
             // Transform the sphere into local box space
             Quaternion iq = Quaternion.Conjugate(box.Orientation);
