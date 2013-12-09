@@ -33,6 +33,7 @@ namespace _3DTest._2_0
 
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        Texture2D simplexMap;
 
         public Game2()
         {
@@ -63,6 +64,19 @@ namespace _3DTest._2_0
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            simplexMap = new Texture2D(GraphicsDevice, 200, 200);
+
+            Color[] dat = new Color[simplexMap.Width * simplexMap.Height];
+
+            for (int xx = 0; xx < simplexMap.Width; xx++)
+            {
+                for (int yy = 0; yy < simplexMap.Height; yy++)
+                {
+                    dat[xx + (yy * simplexMap.Width)] = SimplexNoise.IsSolid(xx, yy) ? Color.White : Color.Black;
+                }
+            }
+
+            simplexMap.SetData<Color>(dat);
         }
 
         /// <summary>
@@ -91,6 +105,11 @@ namespace _3DTest._2_0
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.Clear(Color.Red);
+
+            spriteBatch.Begin();
+            spriteBatch.Draw(simplexMap, new Rectangle(0, 0, 600, 600), Color.White);
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }

@@ -1,4 +1,5 @@
 using System;
+using _3DTest._2_0;
 
 namespace _3DTest
 {
@@ -10,7 +11,7 @@ namespace _3DTest
         /// </summary>
         static void Main(string[] args)
         {
-            using (Game1 game = new Game1())
+            using (var game = new Game2())
             {
                 game.Run();
             }

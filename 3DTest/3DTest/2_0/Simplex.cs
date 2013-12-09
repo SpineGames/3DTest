@@ -18,6 +18,8 @@ namespace _3DTest._2_0
             new int[]{0,1,1},new int[]{0,-1,1},new int[]{0,1,-1},new int[]{0,-1,-1}
         };
 
+        private static int scale = 1;
+
         private static int[] p = new int[]{151,160,137,91,90,15,
 131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
 190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
@@ -35,13 +37,14 @@ namespace _3DTest._2_0
         // To remove the need for index wrapping, double the permutation table length
         private static int[] perm = new int[512];
 
-        public static SimplexNoise() { for (int i = 0; i < 512; i++) perm[i] = p[i & 255]; }
+        static SimplexNoise() { for (int i = 0; i < 512; i++) perm[i] = p[i & 255]; }
 
         // This method is a *lot* faster than using (int)Math.floor(x)
         private static int fastfloor(double x)
         {
             return x > 0 ? (int)x : (int)x - 1;
         }
+
         private static double dot(int[] g, double x, double y)
         {
             return g[0] * x + g[1] * y;

@@ -137,6 +137,7 @@
     <Compile Include="2_0\Game2.cs" />
     <Compile Include="2_0\Instancing\ThreeDInstance.cs" />
     <Compile Include="2_0\Instancing\World.cs" />
+    <Compile Include="2_0\Perlin.cs" />
     <Compile Include="2_0\Rendering\Camera.cs" />
     <Compile Include="2_0\Rendering\Utils.cs" />
     <Compile Include="2_0\Rendering\VertexElement.cs" />
