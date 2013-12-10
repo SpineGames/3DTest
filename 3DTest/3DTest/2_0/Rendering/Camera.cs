@@ -6,7 +6,10 @@ using Microsoft.Xna.Framework;
 
 namespace _3DTest._2_0.Rendering
 {
-    public class Camera
+    /// <summary>
+    /// Represents a static camera
+    /// </summary>
+    public class StaticCamera
     {
         protected Matrix view;
         /// <summary>
@@ -46,15 +49,31 @@ namespace _3DTest._2_0.Rendering
             set { normal = value; lookAt = Position + normal; RebuildView(); }
         }
 
-        protected Vector3 UpVector;
+        protected Vector3 UpVector = new Vector3(0, 0, 1);
 
         protected Vector3 lookAt;
+
+        protected float roll;
+        /// <summary>
+        /// Gets or sets the camera's roll around it's axis
+        /// </summary>
+        public virtual float Roll
+        {
+            get { return roll; }
+            set
+            {
+                roll = value;
+                RollMatrix = Matrix.CreateFromAxisAngle(Normal, roll);
+            }
+        }
+
+        protected Matrix RollMatrix = Matrix.Identity;
 
         /// <summary>
         /// Creates a new camera
         /// </summary>
         /// <param name="projection">The projection matrix to use</param>
-        public Camera(Matrix projection)
+        public StaticCamera(Matrix projection)
         {
             this.projection = projection;
         }
@@ -64,7 +83,7 @@ namespace _3DTest._2_0.Rendering
         /// </summary>
         protected void RebuildView()
         {
-            view = Matrix.CreateLookAt(Position, lookAt, UpVector);
+            view = Matrix.CreateLookAt(Position, lookAt, UpVector) * RollMatrix;
         }
     }
 }

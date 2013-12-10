@@ -34,6 +34,7 @@ namespace _3DTest._2_0
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         Texture2D simplexMap;
+        bool pressed;
 
         public Game2()
         {
@@ -64,19 +65,7 @@ namespace _3DTest._2_0
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            simplexMap = new Texture2D(GraphicsDevice, 200, 200);
-
-            Color[] dat = new Color[simplexMap.Width * simplexMap.Height];
-
-            for (int xx = 0; xx < simplexMap.Width; xx++)
-            {
-                for (int yy = 0; yy < simplexMap.Height; yy++)
-                {
-                    dat[xx + (yy * simplexMap.Width)] = SimplexNoise.IsSolid(xx, yy) ? Color.White : Color.Black;
-                }
-            }
-
-            simplexMap.SetData<Color>(dat);
+            GenTexture();
         }
 
         /// <summary>
@@ -95,6 +84,17 @@ namespace _3DTest._2_0
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            if (Keyboard.GetState().IsKeyDown(Keys.R))
+            {
+                if (!pressed)
+                {
+                    GenTexture();
+                    pressed = true;
+                }
+            }
+            else
+                if (pressed)
+                    pressed = false;
 
             base.Update(gameTime);
         }
@@ -108,10 +108,22 @@ namespace _3DTest._2_0
             GraphicsDevice.Clear(Color.Red);
 
             spriteBatch.Begin();
-            spriteBatch.Draw(simplexMap, new Rectangle(0, 0, 600, 600), Color.White);
+            spriteBatch.Draw(simplexMap, new Rectangle(0, 0,
+                GraphicsDevice.Viewport.Width, 
+                GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void GenTexture()
+        {
+            simplexMap = new Texture2D(GraphicsDevice,
+                GraphicsDevice.Viewport.Width, 
+                GraphicsDevice.Viewport.Height);
+            Perlin2D.GenerateNoiseMap(
+                GraphicsDevice.Viewport.Width, 
+                GraphicsDevice.Viewport.Height, ref simplexMap, 8);
         }
 
         /// <summary>
