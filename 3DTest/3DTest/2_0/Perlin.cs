@@ -87,6 +87,8 @@ namespace _3DTest._2_0
 
         public static float Get(float x, float y, float z, int octaves, ref float min, ref float max)
         {
+            float frequency = 0.5f;
+            float amplitude = 1f;
 
             var perlin = 0f;
             var octave = 1;
@@ -96,6 +98,9 @@ namespace _3DTest._2_0
                 var noise = Get(x * octave, y * octave, z * octave);
 
                 perlin += noise / octave;
+                
+                frequency *= 2;
+                amplitude /= 2;
 
                 octave *= 2;
             }
@@ -139,18 +144,14 @@ namespace _3DTest._2_0
             return MathHelper.Lerp(
                     MathHelper.Lerp(
                          MathHelper.Lerp(
-                            Grad(p[AA], x, y, z) // AND ADD
-                            ,
-                            Grad(p[BA], x - 1, y, z) // BLENDED
-                            ,
+                            Grad(p[AA], x, y, z), // AND ADD                            
+                            Grad(p[BA], x - 1, y, z),// BLENDED                             
                             u
                             )
                         ,
                         MathHelper.Lerp(
-                            Grad(p[AB], x, y - 1, z)  // RESULTS
-                            ,
-                            Grad(p[BB], x - 1, y - 1, z)
-                            ,
+                            Grad(p[AB], x, y - 1, z),  // RESULTS                           
+                            Grad(p[BB], x - 1, y - 1, z),                            
                             u
                             )
                         ,
@@ -159,24 +160,18 @@ namespace _3DTest._2_0
                     ,
                     MathHelper.Lerp(
                         MathHelper.Lerp(
-                            Grad(p[AA + 1], x, y, z - 1) // CORNERS
-                            ,
-                            Grad(p[BA + 1], x - 1, y, z - 1) // OF CUBE
-                            ,
+                            Grad(p[AA + 1], x, y, z - 1), // CORNERS                            
+                            Grad(p[BA + 1], x - 1, y, z - 1), // OF CUBE                            
                             u
                             )
                         ,
                         MathHelper.Lerp(
-                            Grad(p[AB + 1], x, y - 1, z - 1)
-                            ,
-                            Grad(p[BB + 1], x - 1, y - 1, z - 1)
-                            ,
+                            Grad(p[AB + 1], x, y - 1, z - 1),                            
+                            Grad(p[BB + 1], x - 1, y - 1, z - 1),                            
                             u
-                            )
-                        ,
+                            ),                        
                         v
-                    )
-                    ,
+                    ),                    
                     w
                 );
 
@@ -251,7 +246,8 @@ namespace _3DTest._2_0
         }
     }
 
-    /// implements improved Perlin noise in 2D. 
+    /// <summary>
+    /// Implements improved Perlin noise in 2D. 
     /// Transcribed from http://www.siafoo.net/snippet/144?nolinenos#perlin2003
     /// </summary>
     public static class Perlin2D

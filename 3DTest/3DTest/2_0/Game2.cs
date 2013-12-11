@@ -20,6 +20,7 @@ using Spine_Library.SkeletalAnimation;
 using Spine_Library.Tools;
 using Spine_Library._3DFuncs;
 using Particle3DSample;
+using _3DTest._2_0.Instancing;
 
 namespace _3DTest._2_0
 {
@@ -35,6 +36,8 @@ namespace _3DTest._2_0
         SpriteBatch spriteBatch;
         Texture2D simplexMap;
         bool pressed;
+
+        World TestWorld;
 
         public Game2()
         {
@@ -64,6 +67,8 @@ namespace _3DTest._2_0
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            TestWorld = new World(GraphicsDevice);
 
             GenTexture();
         }
@@ -107,20 +112,21 @@ namespace _3DTest._2_0
         {
             GraphicsDevice.Clear(Color.Red);
 
-            spriteBatch.Begin();
-            spriteBatch.Draw(simplexMap, new Rectangle(0, 0,
-                GraphicsDevice.Viewport.Width, 
-                GraphicsDevice.Viewport.Height), Color.White);
-            spriteBatch.End();
+            TestWorld.Render();
 
             base.Draw(gameTime);
         }
 
+        /// <summary>
+        /// Generates the noise texture
+        /// </summary>
         private void GenTexture()
         {
-            simplexMap = new Texture2D(GraphicsDevice,
+            simplexMap = new Texture2D(
+                GraphicsDevice,
                 GraphicsDevice.Viewport.Width, 
                 GraphicsDevice.Viewport.Height);
+
             Perlin2D.GenerateNoiseMap(
                 GraphicsDevice.Viewport.Width, 
                 GraphicsDevice.Viewport.Height, ref simplexMap, 8);

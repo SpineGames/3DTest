@@ -139,6 +139,7 @@
     <Compile Include="2_0\Instancing\World.cs" />
     <Compile Include="2_0\Perlin.cs" />
     <Compile Include="2_0\Rendering\Camera.cs" />
+    <Compile Include="2_0\Rendering\IRenderable.cs" />
     <Compile Include="2_0\Rendering\Utils.cs" />
     <Compile Include="2_0\Rendering\VertexElement.cs" />
     <Compile Include="2_0\OrientedBoundingBox.cs" />

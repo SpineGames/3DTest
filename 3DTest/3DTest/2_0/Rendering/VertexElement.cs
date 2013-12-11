@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace _3DTest._2_0.Rendering
 {
@@ -10,7 +11,7 @@ namespace _3DTest._2_0.Rendering
     /// Represents a vertex model
     /// </summary>
     /// <typeparam name="T">The type of vertex to use</typeparam>
-    public class VertexElement<T> where T : struct, IVertexType
+    public class VertexElement<T> : IRenderable where T : struct, IVertexType
     {
         private bool Finalized = false;
 
@@ -220,7 +221,7 @@ namespace _3DTest._2_0.Rendering
         /// Draws this vertex element
         /// </summary>
         /// <param name="Graphics">The GraphicsDevice to draw with</param>
-        public void Render(GraphicsDevice Graphics)
+        public override void Render(GraphicsDevice Graphics)
         {
             if (Finalized)
             {
